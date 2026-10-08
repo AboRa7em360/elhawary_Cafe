@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منيو الكافيه</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg: #f8f9fa; --card-bg: #ffffff; --accent: #f59e0b; --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding-bottom: 180px; -webkit-tap-highlight-color: transparent; }
+        .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .header h2 { margin: 0; font-size: 24px; font-weight: 900; color: var(--text-main); }
+        .secret-login-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #cbd5e1; font-size: 16px; text-decoration: none; padding: 10px; transition: 0.3s;}
+        .announcement-wrapper { margin: 15px; background: #fffbeb; border-radius: 12px; display: flex; align-items: center; padding: 0 15px; border: 1px solid #fef3c7; }
+        .announcement-wrapper i { color: var(--accent); font-size: 18px; margin-left: 12px; }
+        marquee { font-size: 16px; font-weight: 700; color: #d97706; padding: 12px 0; }
+        .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px 20px 15px; }
+        .product-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; transition: 0.2s; }
+        .product-card:active { transform: scale(0.97); border-color: var(--accent); }
+        .product-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 1px solid var(--border-color); }
+        .no-img-placeholder { width: 100%; height: 130px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .no-img-placeholder i { font-size: 40px; color: #cbd5e1; }
+        .product-info { padding: 12px; text-align: center; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
+        .product-name { font-size: 15px; margin-bottom: 5px; font-weight: 800; color: var(--text-main); }
+        .product-price { color: #d97706; font-size: 18px; font-weight: 900; margin-bottom: 12px; }
+        .controls { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px; padding: 5px; border: 1px solid var(--border-color); }
+        .btn { background: #fff; color: var(--text-main); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .qty { font-size: 16px; font-weight: bold; color: var(--text-main); width: 25px; text-align: center; }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); border-radius: 24px 24px 0 0; }
+        .input-row { display: flex; gap: 10px; }
+        .input-field { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-main); font-size: 14px; text-align: center; font-family: inherit; }
+        .input-field::placeholder { color: var(--text-muted); }
+        .input-field:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+        .submit-btn { width: 100%; background: var(--accent); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); font-family: inherit; }
+        .submit-btn:active { transform: scale(0.98); }
+        #toast { visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 9999; left: 50%; top: 20px; transform: translateX(-50%); font-size: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        #toast.show { visibility: visible; animation: fadeindown 0.5s, fadeoutup 0.5s 2.5s; }
+        @keyframes fadeindown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+        @keyframes fadeoutup { from { top: 20px; opacity: 1; } to { top: -50px; opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast">تم إرسال الطلب للبار!</div>
+
+    <div class="header">
+        <h2 id="cafeName">جاري التحميل...</h2>
+        <a href="login.html" class="secret-login-btn"><i class="fas fa-lock"></i></a>
+    </div>
+    
+    <div class="announcement-wrapper">
+        <i class="fas fa-bullhorn"></i>
+        <marquee id="marqueeText" scrollamount="5">أهلاً بكم.. جاري تحميل العروض والمنيو</marquee>
+    </div>
+
+    <div class="products-grid" id="productsContainer">
+        <div style="grid-column: span 2; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 45px; margin-bottom: 20px; color: var(--accent);"></i>
+            <p style="font-size: 16px; font-weight: bold;">جاري تجهيز المنيو...</p>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="input-row">
+            <input type="number" id="tableNum" class="input-field" placeholder="رقم الطاولة" style="flex: 0.35;">
+            <input type="text" id="orderNotes" class="input-field" placeholder="ملاحظات (سكر زيادة..)">
+        </div>
+        <button class="submit-btn" onclick="submitOrder()"><i class="fas fa-paper-plane" style="margin-left: 8px;"></i> تأكيد وإرسال الطلب</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://izfvaxfhdugqruxigbfa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        // تحويل الرقم لنوع صحيح
+        const cafeId = parseInt(urlParams.get('id')) || 1; 
+
+        let cart = {}; 
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message; toast.className = "show";
+            setTimeout(() => { toast.className = ""; }, 3000);
+        }
+
+        async function fetchData() {
+            const container = document.getElementById('productsContainer');
+            try {
+                const { data: cafeData } = await db.from('cafes').select('name').eq('id', cafeId).single();
+                if(cafeData && cafeData.name) document.getElementById('cafeName').innerText = cafeData.name;
+                else document.getElementById('cafeName').innerText = "المنيو";
+
+                const { data: settings } = await db.from('settings').select('marquee_text').eq('cafe_id', cafeId).single();
+                if(settings && settings.marquee_text) document.getElementById('marqueeText').innerText = settings.marquee_text;
+                else document.getElementById('marqueeText').innerText = "نتمنى لكم وقتاً ممتعاً";
+
+                const { data: products, error } = await db.from('products').select('*').eq('cafe_id', cafeId).order('category');
+                if (error) throw error;
+
+                container.innerHTML = '';
+                if(products.length === 0) {
+                    container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: var(--text-muted); padding-top:40px;">لا توجد منتجات في المنيو حالياً</p>'; 
+                    return;
+                }
+
+                products.forEach(p => {
+                    cart[p.id] = { name: p.name, qty: 0 }; 
+                    let imageElement = (p.image_url && p.image_url.trim() !== '') ? `<img src="${p.image_url}" class="product-img">` : `<div class="no-img-placeholder"><i class="fas fa-mug-hot"></i></div>`;
+                    
+                    container.innerHTML += `
+                        <div class="product-card">
+                            ${imageElement}
+                            <div class="product-info">
+                                <div><div class="product-name">${p.name}</div><div class="product-price">${p.price} ج.م</div></div>
+                                <div class="controls">
+                                    <button class="btn" onclick="updateQty(${p.id}, 1)">+</button>
+                                    <div class="qty" id="qty-${p.id}">0</div>
+                                    <button class="btn" onclick="updateQty(${p.id}, -1)">-</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: #e74c3c;">فشل الاتصال بالنظام. يرجى تحديث الصفحة.</p>';
+            }
+        }
+
+        function updateQty(id, change) {
+            if (navigator.vibrate) navigator.vibrate(50);
+            let newQty = cart[id].qty + change;
+            if (newQty < 0) newQty = 0; 
+            cart[id].qty = newQty;
+            document.getElementById(`qty-${id}`).innerText = newQty;
+        }
+
+        async function submitOrder() {
+            const tableNum = document.getElementById('tableNum').value;
+            const notes = document.getElementById('orderNotes').value;
+            
+            if(!tableNum) { alert("من فضلك اكتب رقم الطاولة اللي قاعد عليها"); return; }
+
+            const finalItems = {}; let totalItems = 0;
+            for (const [id, item] of Object.entries(cart)) { 
+                if (item.qty > 0) { finalItems[item.name] = item.qty; totalItems++; } 
+            }
+            if(totalItems === 0) { alert("الطلب فاضي! اختار مشروباتك الأول."); return; }
+
+            const btn = document.querySelector('.submit-btn');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الإرسال...';
+            btn.disabled = true;
+
+            // التعديل الأهم: إرسال status: 'pending' وإجبار الـ ID يكون رقم
+            const { error } = await db.from('orders').insert([{ 
+                cafe_id: cafeId, 
+                table_number: tableNum, 
+                items: finalItems, 
+                notes: notes,
+                status: 'pending' 
+            }]);
+
+            btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left: 8px;"></i> تأكيد وإرسال الطلب';
+            btn.disabled = false;
+
+            if (error) { 
+                alert("حصلت مشكلة في الإرسال، راجع الإنترنت بتاعك"); 
+            } else {
+                showToast("تم إرسال طلبك للبار بنجاح!");
+                document.getElementById('tableNum').value = '';
+                document.getElementById('orderNotes').value = '';
+                // تصفير الأرقام في الشاشة بدون تحميل كامل
+                for (const key in cart) {
+                    cart[key].qty = 0;
+                    if(document.getElementById(`qty-${key}`)) {
+                        document.getElementById(`qty-${key}`).innerText = '0';
+                    }
+                }
+            }
+        }
+        
+        fetchData();
+    </script>
+</body>
+</html>

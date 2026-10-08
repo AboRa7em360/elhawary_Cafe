@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الإدارة المركزية | Super Admin</title>
+    <script>
+        if (localStorage.getItem('is_super_admin') !== 'true') {
+            window.location.replace('login.html');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #f59e0b; --text: #f8fafc; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-bottom: 50px; }
+        
+        .header { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); padding: 20px; border-radius: 15px; text-align: center; font-size: 24px; font-weight: 900; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); color: var(--accent); position: relative; }
+        .logout-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: transparent; color: #e74c3c; border: none; font-size: 20px; cursor: pointer; padding: 5px; }
+        
+        .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .card h3 { margin-top: 0; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+        
+        .add-form { display: flex; gap: 10px; flex-wrap: wrap; }
+        .input-field { flex: 1; min-width: 200px; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: rgba(0,0,0,0.2); color: white; font-size: 15px; }
+        .input-field:focus { outline: none; border-color: var(--accent); }
+        .btn { padding: 12px 20px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; font-size: 15px; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-add { background: #2ecc71; min-width: 150px; }
+        .btn-clean { background: #e74c3c; width: 100%; font-size: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2); }
+        
+        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .cafe-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+        .cafe-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; color: var(--accent); }
+        .cafe-details { color: #94a3b8; font-size: 14px; }
+        .cafe-actions { display: flex; gap: 10px; margin-top: 10px; }
+        
+        .btn-suspend { background: #e74c3c; flex: 1; }
+        .btn-activate { background: #3498db; flex: 1; }
+        .btn-renew { background: #f39c12; flex: 1; }
+
+        .link-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px dashed rgba(245, 158, 11, 0.4); }
+        .link-input { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 12px; direction: ltr; text-align: left; }
+        .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 15px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+
+        /* تصميم النافذة المنبثقة (Modal) الجديد */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-box { background: #1e293b; padding: 30px 20px; border-radius: 24px; width: 85%; max-width: 400px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-icon { width: 80px; height: 80px; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; margin: 0 auto 20px; border: 2px solid rgba(231, 76, 60, 0.3); }
+        .modal-box h3 { color: #fff; margin-top: 0; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        .modal-box p { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 25px; }
+        .modal-actions { display: flex; gap: 12px; }
+        .modal-actions .btn { flex: 1; padding: 15px; font-size: 16px; border-radius: 14px; }
+        .btn-cancel { background: #334155; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-danger { background: #e74c3c; color: #fff; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- النافذة المنبثقة (للتنظيف) -->
+    <div id="customConfirmModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3>تحذير هام!</h3>
+            <p>هل أنت متأكد من مسح جميع الطلبات المكتملة التي مر عليها أكثر من 30 يوم؟<br><br><strong style="color:#e74c3c;">هذا الإجراء لا يمكن التراجع عنه.</strong></p>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">إلغاء</button>
+                <button class="btn btn-danger" onclick="executeClean()">نعم، احذفها</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+        <i class="fas fa-chess-king"></i> الإدارة المركزية (Super Admin)
+        <button class="logout-btn" onclick="logout()" title="تسجيل خروج"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+
+    <div class="card" style="border-right: 5px solid #e74c3c;">
+        <h3><i class="fas fa-database" style="color: #e74c3c;"></i> صيانة وتفريغ مساحة قاعدة البيانات</h3>
+        <p style="color: #94a3b8; font-size: 14px; margin-top: 0; margin-bottom: 15px;">استخدم هذا الخيار لمسح الطلبات المكتملة القديمة لتخفيف الضغط على السيرفر وتسريع النظام.</p>
+        <button id="cleanBtn" class="btn btn-clean" onclick="showModal()">
+            <i class="fas fa-broom"></i> تنظيف الطلبات القديمة
+        </button>
+    </div>
+
+    <div class="card" style="border-right: 5px solid #2ecc71;">
+        <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إنشاء حساب كافيه جديد</h3>
+        <div class="add-form">
+            <input type="text" id="newName" class="input-field" placeholder="اسم الكافيه (مثال: كافيه السلطان)">
+            <input type="text" id="newUser" class="input-field" placeholder="اسم المستخدم (للدخول)">
+            <input type="text" id="newPass" class="input-field" placeholder="كلمة المرور">
+            <!-- حقل اختيار التاريخ الجديد -->
+            <input type="date" id="newDate" class="input-field" title="تاريخ انتهاء الاشتراك">
+            <button class="btn btn-add" onclick="addCafe()"><i class="fas fa-save"></i> حفظ وإنشاء</button>
+        </div>
+    </div>
+
+    <div class="card" style="border-right: 5px solid #f39c12;">
+        <h3><i class="fas fa-store" style="color: #f39c12;"></i> الكافيهات المشتركة</h3>
+        <div class="cafe-grid" id="cafesList">
+            <p style="text-align: center; color: #777;">جاري التحميل...</p>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('is_super_admin');
+            window.location.replace('login.html');
+        }
+
+        const SUPABASE_URL = 'https://izfvaxfhdugqruxigbfa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const baseUrl = window.location.origin;
+
+        // -- دوال النافذة المنبثقة للتنظيف --
+        function showModal() {
+            document.getElementById('customConfirmModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('customConfirmModal').style.display = 'none';
+        }
+
+        async function executeClean() {
+            closeModal();
+            const btn = document.getElementById('cleanBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التنظيف وحذف البيانات...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+            
+            let d = new Date(); d.setDate(d.getDate() - 30);
+            const thirtyDaysAgo = d.toISOString();
+
+            const { error } = await db.from('orders').delete().eq('status', 'completed').lt('created_at', thirtyDaysAgo);
+
+            btn.innerHTML = '<i class="fas fa-broom"></i> تنظيف الطلبات القديمة';
+            btn.style.opacity = '1';
+            btn.disabled = false;
+
+            if(error) alert("حدث خطأ أثناء التنظيف: " + error.message);
+            else alert("✅ تم تنظيف قاعدة البيانات بنجاح!");
+        }
+        // -----------------------------------
+
+        // -- تعيين تاريخ افتراضي لحقل التاريخ (بعد 30 يوم من النهارده) --
+        window.onload = function() {
+            let defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 30);
+            document.getElementById('newDate').value = defaultDate.toISOString().split('T')[0];
+        };
+
+        async function loadCafes() {
+            const { data } = await db.from('cafes').select('*').order('id', { ascending: false });
+            const list = document.getElementById('cafesList');
+            list.innerHTML = '';
+            
+            if(data && data.length > 0) {
+                data.forEach(c => {
+                    const statusText = c.is_active ? '<span style="color:#2ecc71;"><i class="fas fa-check-circle"></i> نشط</span>' : '<span style="color:#e74c3c;"><i class="fas fa-times-circle"></i> موقوف</span>';
+                    const toggleBtn = c.is_active 
+                        ? `<button class="btn btn-suspend" onclick="toggleStatus(${c.id}, false)"><i class="fas fa-ban"></i> إيقاف</button>`
+                        : `<button class="btn btn-activate" onclick="toggleStatus(${c.id}, true)"><i class="fas fa-play"></i> تفعيل</button>`;
+                    
+                    const customerLink = `${baseUrl}/?id=${c.id}`;
+                    const tvLink = `${baseUrl}/tv.html?id=${c.id}`;
+
+                    list.innerHTML += `
+                        <div class="cafe-card">
+                            <div class="cafe-header">
+                                <span><i class="fas fa-coffee"></i> ${c.name}</span>
+                                <span style="font-size: 14px;">${statusText}</span>
+                            </div>
+                            <div class="cafe-details">
+                                <div><i class="fas fa-user"></i> اليوزر: <b>${c.owner_username}</b></div>
+                                <div><i class="fas fa-lock"></i> الباسورد: <b>${c.owner_password}</b></div>
+                                <div><i class="fas fa-calendar-alt"></i> انتهاء الاشتراك: <b dir="ltr">${c.subscription_end || 'غير محدد'}</b></div>
+                            </div>
+                            
+                            <!-- بوكس رابط المنيو (الباركود) -->
+                            <div class="link-box">
+                                <div style="color: var(--accent); font-size: 12px; margin-bottom: 5px; font-weight: bold;">
+                                    <i class="fas fa-link"></i> رابط المنيو (الباركود):
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="text" class="link-input" value="${customerLink}" readonly>
+                                    <button class="btn-copy" onclick="copyLink('${customerLink}')"><i class="fas fa-copy"></i> نسخ</button>
+                                </div>
+                            </div>
+
+                            <!-- بوكس رابط شاشة التلفزيون (TV) -->
+                            <div class="link-box" style="margin-top: 10px; border-color: #3498db;">
+                                <div style="color: #3498db; font-size: 12px; margin-bottom: 5px; font-weight: bold;">
+                                    <i class="fas fa-tv"></i> رابط شاشة العرض (TV):
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="text" class="link-input" value="${tvLink}" readonly>
+                                    <button class="btn-copy" style="background: #3498db;" onclick="copyLink('${tvLink}')"><i class="fas fa-copy"></i> نسخ</button>
+                                </div>
+                            </div>
+
+                            <div class="cafe-actions">
+                                ${toggleBtn}
+                                <button class="btn btn-renew" onclick="addMonth(${c.id}, '${c.subscription_end}')"><i class="fas fa-calendar-plus"></i> تمديد 30 يوم</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد كافيهات مشتركة حتى الآن</p>';
+            }
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('تم نسخ الرابط بنجاح! تقدر تبعته لصاحب الكافيه دلوقتي.');
+            });
+        }
+
+        async function addCafe() {
+            const name = document.getElementById('newName').value;
+            const user = document.getElementById('newUser').value;
+            const pass = document.getElementById('newPass').value;
+            const endDate = document.getElementById('newDate').value;
+            
+            if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات والتاريخ!');
+            
+            document.querySelector('.btn-add').innerText = 'جاري الإنشاء...';
+
+            const { error } = await db.from('cafes').insert([{ name: name, owner_username: user, owner_password: pass, is_active: true, subscription_end: endDate }]);
+            
+            document.querySelector('.btn-add').innerHTML = '<i class="fas fa-save"></i> حفظ وإنشاء';
+            
+            if(error) {
+                if(error.code === '23505') alert('اسم المستخدم موجود! اختار غيره.');
+                else alert('حصل مشكلة في الإضافة');
+            } else {
+                alert('تم إنشاء حساب الكافيه بنجاح!');
+                document.getElementById('newName').value = ''; 
+                document.getElementById('newUser').value = ''; 
+                document.getElementById('newPass').value = '';
+                // إرجاع التاريخ الافتراضي
+                let d = new Date(); d.setDate(d.getDate() + 30);
+                document.getElementById('newDate').value = d.toISOString().split('T')[0];
+                loadCafes();
+            }
+        }
+
+        async function toggleStatus(id, isActive) {
+            await db.from('cafes').update({ is_active: isActive }).eq('id', id); loadCafes();
+        }
+
+        async function addMonth(id, currentEndDate) {
+            let d = currentEndDate ? new Date(currentEndDate) : new Date();
+            d.setDate(d.getDate() + 30); const newDate = d.toISOString().split('T')[0];
+            await db.from('cafes').update({ subscription_end: newDate }).eq('id', id);
+            alert(`تم التمديد حتى: ${newDate}`); loadCafes();
+        }
+
+        loadCafes();
+    </script>
+</body>
+</html>

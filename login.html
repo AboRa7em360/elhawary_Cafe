@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تسجيل الدخول | الكافيه</title>
+    
+    <!-- شرط الدخول التلقائي اللي إنت طلبته (السحر كله هنا) -->
+    <script>
+        // لو مسجل كأدمن رئيسي، يدخل على الإدارة الكبرى أوتوماتيك
+        if (localStorage.getItem('is_super_admin') === 'true') {
+            window.location.replace('super_admin.html');
+        } 
+        // لو مسجل كصاحب كافيه، يدخل على الداشبورد أوتوماتيك
+        else if (localStorage.getItem('cafe_id')) {
+            window.location.replace('dashboard.html');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #f59e0b; --text: #f8fafc; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; position: relative;}
+        
+        /* زرار الرجوع للمنيو */
+        .back-btn { position: absolute; top: 20px; right: 20px; color: var(--text); text-decoration: none; font-size: 15px; background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 10px; }
+        
+        .login-box { background: var(--card); padding: 40px 25px; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.5); width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .login-box i.main-icon { font-size: 50px; color: var(--accent); margin-bottom: 15px; }
+        .login-box h2 { margin-top: 0; font-size: 24px; font-weight: 900; margin-bottom: 25px; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 15px; }
+        .input-field { padding: 15px; border-radius: 12px; border: 1px solid #334155; background: rgba(0,0,0,0.2); color: white; font-size: 16px; text-align: center; }
+        .input-field:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.4); }
+        
+        .btn-login { background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); width: 100%; transition: 0.2s; margin-top: 10px; }
+        .btn-login:active { transform: scale(0.95); }
+
+        .error-msg { color: #e74c3c; font-size: 14px; font-weight: bold; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-btn"><i class="fas fa-arrow-right"></i> رجوع للمنيو</a>
+
+    <div class="login-box">
+        <i class="fas fa-user-lock main-icon"></i>
+        <h2>تسجيل الدخول</h2>
+        
+        <!-- وسم Form عشان المتصفح يحفظ الباسورد -->
+        <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
+            <div class="input-group">
+                <input type="text" id="username" class="input-field" placeholder="اسم المستخدم" required autocomplete="username">
+                <input type="password" id="password" class="input-field" placeholder="كلمة المرور" required autocomplete="current-password">
+                <button type="submit" class="btn-login" id="submitBtn">دخول <i class="fas fa-sign-in-alt"></i></button>
+            </div>
+        </form>
+
+        <div id="errorMsg" class="error-msg">بيانات الدخول غير صحيحة!</div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://izfvaxfhdugqruxigbfa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function handleLogin() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const btn = document.getElementById('submitBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            
+            errorMsg.style.display = 'none';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الدخول...';
+            btn.disabled = true;
+
+            // فحص الإدارة المركزية (الآدمن الكبير)
+            if (user === 'admin' && pass === 'admin123') {
+                localStorage.setItem('is_super_admin', 'true');
+                window.location.replace('super_admin.html');
+                return;
+            }
+
+            // فحص أصحاب الكافيهات
+            try {
+                const { data, error } = await db.from('cafes')
+                    .select('*')
+                    .eq('owner_username', user)
+                    .eq('owner_password', pass)
+                    .single();
+
+                if (data) {
+                    if (data.is_active === false) {
+                        errorMsg.innerText = 'هذا الحساب موقوف، يرجى التواصل مع الإدارة.';
+                        errorMsg.style.display = 'block';
+                    } else {
+                        // حفظ بيانات الجلسة (الدخول) عشان يدخل أوتوماتيك بعد كده
+                        localStorage.setItem('cafe_id', data.id);
+                        localStorage.setItem('cafe_name', data.name);
+                        
+                        // التوجيه للوحة التحكم الخاصة بالكافيه
+                        window.location.replace('dashboard.html');
+                        return;
+                    }
+                } else {
+                    errorMsg.innerText = 'اسم المستخدم أو كلمة المرور غير صحيحة!';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.innerText = 'حدث خطأ في الاتصال، حاول مرة أخرى.';
+                errorMsg.style.display = 'block';
+            }
+
+            btn.innerHTML = 'دخول <i class="fas fa-sign-in-alt"></i>';
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
