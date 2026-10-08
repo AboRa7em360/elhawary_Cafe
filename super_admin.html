@@ -29,7 +29,7 @@
         .btn-add { background: #2ecc71; min-width: 150px; }
         .btn-clean { background: #e74c3c; width: 100%; font-size: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2); }
         
-        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         .cafe-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
         .cafe-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; color: var(--accent); }
         .cafe-details { color: #94a3b8; font-size: 14px; }
@@ -40,34 +40,24 @@
         .btn-renew { background: #f39c12; flex: 1; }
 
         .link-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px dashed rgba(245, 158, 11, 0.4); }
-        .link-input { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 12px; direction: ltr; text-align: left; }
-        .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 15px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px;}
+        .link-input { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 11px; direction: ltr; text-align: left; }
+        .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
+        .btn-qr { background: #8e44ad; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
 
-        /* تصميم النافذة المنبثقة (Modal) الجديد */
+        /* نافذة QR Code المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-box { background: #1e293b; padding: 30px 20px; border-radius: 24px; width: 85%; max-width: 400px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-icon { width: 80px; height: 80px; background: rgba(231, 76, 60, 0.1); color: #e74c3c; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; margin: 0 auto 20px; border: 2px solid rgba(231, 76, 60, 0.3); }
-        .modal-box h3 { color: #fff; margin-top: 0; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
-        .modal-box p { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 25px; }
-        .modal-actions { display: flex; gap: 12px; }
-        .modal-actions .btn { flex: 1; padding: 15px; font-size: 16px; border-radius: 14px; }
-        .btn-cancel { background: #334155; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-danger { background: #e74c3c; color: #fff; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-box { background: #1e293b; padding: 30px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .modal-box img { width: 200px; height: 200px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- النافذة المنبثقة (للتنظيف) -->
-    <div id="customConfirmModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <h3>تحذير هام!</h3>
-            <p>هل أنت متأكد من مسح جميع الطلبات المكتملة التي مر عليها أكثر من 30 يوم؟<br><br><strong style="color:#e74c3c;">هذا الإجراء لا يمكن التراجع عنه.</strong></p>
-            <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal()">إلغاء</button>
-                <button class="btn btn-danger" onclick="executeClean()">نعم، احذفها</button>
-            </div>
+    <!-- نافذة عرض الـ QR -->
+    <div id="qrModal" class="modal-overlay" onclick="closeQrModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h3 id="qrCafeName" style="color:var(--accent); margin-top:0;">باركود الكافيه</h3>
+            <img id="qrImage" src="" alt="QR Code">
+            <button class="btn btn-clean" style="padding:10px; font-size:14px;" onclick="closeQrModal()">إغلاق</button>
         </div>
     </div>
 
@@ -76,21 +66,12 @@
         <button class="logout-btn" onclick="logout()" title="تسجيل خروج"><i class="fas fa-sign-out-alt"></i></button>
     </div>
 
-    <div class="card" style="border-right: 5px solid #e74c3c;">
-        <h3><i class="fas fa-database" style="color: #e74c3c;"></i> صيانة وتفريغ مساحة قاعدة البيانات</h3>
-        <p style="color: #94a3b8; font-size: 14px; margin-top: 0; margin-bottom: 15px;">استخدم هذا الخيار لمسح الطلبات المكتملة القديمة لتخفيف الضغط على السيرفر وتسريع النظام.</p>
-        <button id="cleanBtn" class="btn btn-clean" onclick="showModal()">
-            <i class="fas fa-broom"></i> تنظيف الطلبات القديمة
-        </button>
-    </div>
-
     <div class="card" style="border-right: 5px solid #2ecc71;">
-        <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إنشاء حساب كافيه جديد</h3>
+        <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إنشاء حساب كافيه جديد (توليد تلقائي بالكامل)</h3>
         <div class="add-form">
-            <input type="text" id="newName" class="input-field" placeholder="اسم الكافيه (مثال: كافيه السلطان)">
+            <input type="text" id="newName" class="input-field" placeholder="اسم الكافيه (مثال: ابن عز)">
             <input type="text" id="newUser" class="input-field" placeholder="اسم المستخدم (للدخول)">
             <input type="text" id="newPass" class="input-field" placeholder="كلمة المرور">
-            <!-- حقل اختيار التاريخ الجديد -->
             <input type="date" id="newDate" class="input-field" title="تاريخ انتهاء الاشتراك">
             <button class="btn btn-add" onclick="addCafe()"><i class="fas fa-save"></i> حفظ وإنشاء</button>
         </div>
@@ -112,39 +93,7 @@
         const SUPABASE_URL = 'https://izfvaxfhdugqruxigbfa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const baseUrl = window.location.origin;
 
-        // -- دوال النافذة المنبثقة للتنظيف --
-        function showModal() {
-            document.getElementById('customConfirmModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('customConfirmModal').style.display = 'none';
-        }
-
-        async function executeClean() {
-            closeModal();
-            const btn = document.getElementById('cleanBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التنظيف وحذف البيانات...';
-            btn.style.opacity = '0.7';
-            btn.disabled = true;
-            
-            let d = new Date(); d.setDate(d.getDate() - 30);
-            const thirtyDaysAgo = d.toISOString();
-
-            const { error } = await db.from('orders').delete().eq('status', 'completed').lt('created_at', thirtyDaysAgo);
-
-            btn.innerHTML = '<i class="fas fa-broom"></i> تنظيف الطلبات القديمة';
-            btn.style.opacity = '1';
-            btn.disabled = false;
-
-            if(error) alert("حدث خطأ أثناء التنظيف: " + error.message);
-            else alert("✅ تم تنظيف قاعدة البيانات بنجاح!");
-        }
-        // -----------------------------------
-
-        // -- تعيين تاريخ افتراضي لحقل التاريخ (بعد 30 يوم من النهارده) --
         window.onload = function() {
             let defaultDate = new Date();
             defaultDate.setDate(defaultDate.getDate() + 30);
@@ -156,6 +105,9 @@
             const list = document.getElementById('cafesList');
             list.innerHTML = '';
             
+            // استخراج مسار الأساس للرابط الصحيح على GitHub Pages
+            let currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+
             if(data && data.length > 0) {
                 data.forEach(c => {
                     const statusText = c.is_active ? '<span style="color:#2ecc71;"><i class="fas fa-check-circle"></i> نشط</span>' : '<span style="color:#e74c3c;"><i class="fas fa-times-circle"></i> موقوف</span>';
@@ -163,8 +115,9 @@
                         ? `<button class="btn btn-suspend" onclick="toggleStatus(${c.id}, false)"><i class="fas fa-ban"></i> إيقاف</button>`
                         : `<button class="btn btn-activate" onclick="toggleStatus(${c.id}, true)"><i class="fas fa-play"></i> تفعيل</button>`;
                     
-                    const customerLink = `${baseUrl}/?id=${c.id}`;
-                    const tvLink = `${baseUrl}/tv.html?id=${c.id}`;
+                    // الروابط الجديدة بالـ Public Token الفريد
+                    const customerLink = `${currentPath}/index.html?cafe=${c.public_token}`;
+                    const tvLink = `${currentPath}/tv.html?cafe=${c.public_token}`;
 
                     list.innerHTML += `
                         <div class="cafe-card">
@@ -178,19 +131,20 @@
                                 <div><i class="fas fa-calendar-alt"></i> انتهاء الاشتراك: <b dir="ltr">${c.subscription_end || 'غير محدد'}</b></div>
                             </div>
                             
-                            <!-- بوكس رابط المنيو (الباركود) -->
+                            <!-- رابط المنيو والباركود -->
                             <div class="link-box">
                                 <div style="color: var(--accent); font-size: 12px; margin-bottom: 5px; font-weight: bold;">
-                                    <i class="fas fa-link"></i> رابط المنيو (الباركود):
+                                    <i class="fas fa-link"></i> رابط المنيو (الخاص بالكافيه):
                                 </div>
                                 <div style="display: flex; gap: 5px;">
                                     <input type="text" class="link-input" value="${customerLink}" readonly>
                                     <button class="btn-copy" onclick="copyLink('${customerLink}')"><i class="fas fa-copy"></i> نسخ</button>
+                                    <button class="btn-qr" onclick="showQrModal('${c.name}', '${customerLink}')"><i class="fas fa-qrcode"></i> QR</button>
                                 </div>
                             </div>
 
-                            <!-- بوكس رابط شاشة التلفزيون (TV) -->
-                            <div class="link-box" style="margin-top: 10px; border-color: #3498db;">
+                            <!-- رابط شاشة التلفزيون -->
+                            <div class="link-box" style="margin-top: 5px; border-color: #3498db;">
                                 <div style="color: #3498db; font-size: 12px; margin-bottom: 5px; font-weight: bold;">
                                     <i class="fas fa-tv"></i> رابط شاشة العرض (TV):
                                 </div>
@@ -214,8 +168,18 @@
 
         function copyLink(link) {
             navigator.clipboard.writeText(link).then(() => {
-                alert('تم نسخ الرابط بنجاح! تقدر تبعته لصاحب الكافيه دلوقتي.');
+                alert('تم نسخ الرابط بنجاح!');
             });
+        }
+
+        function showQrModal(cafeName, link) {
+            document.getElementById('qrCafeName').innerText = cafeName;
+            document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(link)}`;
+            document.getElementById('qrModal').style.display = 'flex';
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModal').style.display = 'none';
         }
 
         async function addCafe() {
@@ -224,7 +188,7 @@
             const pass = document.getElementById('newPass').value;
             const endDate = document.getElementById('newDate').value;
             
-            if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات والتاريخ!');
+            if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات!');
             
             document.querySelector('.btn-add').innerText = 'جاري الإنشاء...';
 
@@ -233,16 +197,12 @@
             document.querySelector('.btn-add').innerHTML = '<i class="fas fa-save"></i> حفظ وإنشاء';
             
             if(error) {
-                if(error.code === '23505') alert('اسم المستخدم موجود! اختار غيره.');
-                else alert('حصل مشكلة في الإضافة');
+                alert('حدث خطأ، ربما اسم المستخدم موجود مسبقاً.');
             } else {
-                alert('تم إنشاء حساب الكافيه بنجاح!');
+                alert('✅ تم إنشاء الكافيه وتوليد الـ Token والـ QR أوتوماتيكياً!');
                 document.getElementById('newName').value = ''; 
                 document.getElementById('newUser').value = ''; 
                 document.getElementById('newPass').value = '';
-                // إرجاع التاريخ الافتراضي
-                let d = new Date(); d.setDate(d.getDate() + 30);
-                document.getElementById('newDate').value = d.toISOString().split('T')[0];
                 loadCafes();
             }
         }

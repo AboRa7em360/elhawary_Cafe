@@ -166,7 +166,6 @@
         <button class="btn btn-save" onclick="loadReports()" style="margin-top: 10px;"><i class="fas fa-sync-alt"></i> تحديث التقارير الآن</button>
     </div>
 
-    <!-- الشريط السفلي المحدث -->
     <div class="bottom-nav">
         <div class="nav-item" id="nav-bar" onclick="switchTab('bar', this)"><i class="fas fa-bell"></i> البار</div>
         <div class="nav-item" id="nav-history" onclick="switchTab('history', this)"><i class="fas fa-history"></i> السابقة</div>
@@ -242,10 +241,26 @@
             if(tabId === 'history') loadHistoryOrders();
         }
 
-        async function loadOrders() {
+        // دالة مراقبة وجلب الطلبات (تعمل في الخلفية دائماً بغض النظر عن الصفحة المفتوحة)
+        async function checkNewOrdersBackground() {
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
-            const container = document.getElementById('ordersContainer');
             
+            if (orders && orders.length > 0) {
+                const latestOrder = orders[0];
+                if (lastOrderId !== null && latestOrder.id > lastOrderId) {
+                    playAudioAlert(latestOrder.table_number);
+                }
+                lastOrderId = latestOrder.id;
+            }
+
+            // لو الكاشير واقف في صفحة البار، حدث الشاشة وعرض الكروت
+            if (document.getElementById('bar').classList.contains('active')) {
+                renderOrdersUI(orders);
+            }
+        }
+
+        function renderOrdersUI(orders) {
+            const container = document.getElementById('ordersContainer');
             if (!orders || orders.length === 0) {
                 container.innerHTML = `
                     <div class="empty-orders">
@@ -254,10 +269,6 @@
                     </div>`;
                 return;
             }
-
-            const latestOrder = orders[0];
-            if (lastOrderId !== null && latestOrder.id > lastOrderId) playAudioAlert(latestOrder.table_number);
-            if (orders.length > 0) lastOrderId = latestOrder.id; 
 
             let newHtml = '';
             orders.forEach(order => {
@@ -287,12 +298,10 @@
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
-        // جلب الطلبات السابقة لعرضها في تبويب History
         async function loadHistoryOrders() {
             const container = document.getElementById('historyContainer');
             container.innerHTML = '<p style="text-align: center; color: var(--accent);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
 
-            // تنظيف الطلبات الأقدم من 24 ساعة أوتوماتيك
             let d = new Date(); d.setDate(d.getDate() - 1);
             await db.from('orders').delete().eq('cafe_id', cafeId).eq('status', 'completed').lt('created_at', d.toISOString());
 
@@ -455,7 +464,7 @@
 
         async function updateSettings() {
             const text = document.getElementById('marqueeText').value;
-            const { data: existing } = await db.from('settings').select('id').eq('cafe_id', cafeId).single();
+            const { data: existing } = await db.from('settings').select('id').eq('cafe_id, cafeId').eq('cafe_id', cafeId).single();
             if (existing) await db.from('settings').update({ marquee_text: text }).eq('cafe_id', cafeId);
             else await db.from('settings').insert([{ cafe_id: cafeId, marquee_text: text }]);
             alert("تم حفظ الإعلان بنجاح!");
@@ -489,8 +498,9 @@
             }
         }
 
-        loadOrders();
-        setInterval(loadOrders, 3000); 
+        // تشغيل نظام المراقبة في الخلفية كل 3 ثوانٍ بغض النظر عن الصفحة النشطة
+        checkNewOrdersBackground();
+        setInterval(checkNewOrdersBackground, 3000); 
         loadProducts();
         loadSettings();
     </script>
