@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* ديزاين أبيض راقي ومريح للنظر مع ألوان ملفتة للمنتجات */
         :root { --bg: #f8fafc; --card-bg: #ffffff; --accent: #d97706; --text-main: #0f172a; --text-muted: #64748b; }
         body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
@@ -19,7 +18,6 @@
         .qr-section img { width: 70px; height: 70px; border-radius: 10px; background: #fff; padding: 4px; border: 1px solid #e2e8f0; }
         .qr-text { font-size: 15px; font-weight: bold; line-height: 1.4; color: #334155; }
 
-        /* شريط الترحيب المتحرك */
         .welcome-ticker-box { width: 100%; background: #1e293b; border-bottom: 4px solid var(--accent); padding: 14px 0; overflow: hidden; white-space: nowrap; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; z-index: 20; }
         .ticker-content { display: inline-block; animation: scrollRightToLeft 28s linear infinite; font-size: 26px; font-weight: 900; color: #fde047; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .ticker-content span { color: #4ade80; margin: 0 15px; }
@@ -30,37 +28,45 @@
             100% { transform: translateX(100vw); }
         }
 
-        /* بوكس الإعلان الترويجي الخارجي للأدمن */
         .admin-promo-banner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 250, 252, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .promo-card { background: #ffffff; border: 4px solid var(--accent); border-radius: 30px; display: flex; flex-direction: column; width: 90%; max-width: 950px; height: 86vh; overflow: hidden; box-shadow: 0 35px 90px rgba(0,0,0,0.15); animation: popIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
-        
         .promo-info { flex: 1.1; padding: 30px 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; background: #f8fafc; }
         .promo-badge { background: linear-gradient(45deg, #e74c3c, #f39c12); color: #fff; font-size: 15px; font-weight: bold; padding: 5px 18px; border-radius: 20px; display: inline-block; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(231,76,60,0.3); }
         .promo-title { font-size: 45px; font-weight: 900; color: #0f172a; margin-bottom: 10px; line-height: 1.2; }
         .promo-desc { font-size: 24px; color: #475569; margin-bottom: 15px; line-height: 1.4; }
-        
         .promo-phone { font-size: 30px; color: #fff; font-weight: 900; background: linear-gradient(135deg, #16a34a, #15803d); padding: 10px 25px; border-radius: 20px; display: inline-flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(22, 163, 74, 0.3); direction: ltr; }
         .promo-phone i { color: #fde047; font-size: 28px; }
-
         .promo-img-container { flex: 1.5; width: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border-top: 2px solid #e2e8f0; }
-        .promo-slide-img { width: 100%; height: 100%; object-fit: cover; animation: cinematicMotion 10s ease-in-out infinite alternate; }
-
-        @keyframes cinematicMotion {
-            0% { transform: scale(1) translate(0, 0); }
-            50% { transform: scale(1.06) translate(10px, -8px); }
-            100% { transform: scale(1.03) translate(-10px, 8px); }
-        }
+        .promo-slide-img { width: 100%; height: 100%; object-fit: cover; }
 
         @keyframes popIn { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* منطقة عرض المنتجات (ديزاين أبيض مريح ومنسق بدقة لمنع التداخل) */
+        /* منطقة عرض المنتجات (مع 4 أنظمة حركات سينمائية مبهرة بالتبادل) */
         .slider-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #ffffff 0%, #f1f5f9 100%); overflow: hidden; }
         
-        .slide { position: absolute; width: 85%; height: 75%; display: flex; align-items: center; justify-content: space-between; opacity: 0; transform: scale(0.9) translateY(20px); transition: all 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .slide.active { opacity: 1; transform: scale(1) translateY(0); z-index: 10; }
+        .slide { position: absolute; width: 85%; height: 75%; display: flex; align-items: center; justify-content: space-between; opacity: 0; pointer-events: none; transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
+        /* أنظمة الحركات المختلفة */
+        .slide.active { opacity: 1; transform: none; pointer-events: auto; z-index: 10; }
+        
+        /* نظام 1: التمويع والتداخل (Fade & Blur) */
+        .slide.effect-fade { transform: scale(0.95); filter: blur(5px); }
+        .slide.effect-fade.active { transform: scale(1); filter: blur(0); }
+
+        /* نظام 2: التكبير الدائري (Zoom In) */
+        .slide.effect-zoom { transform: scale(0.7); }
+        .slide.effect-zoom.active { transform: scale(1); }
+
+        /* نظام 3: الانزلاق السينمائي (Slide From Right) */
+        .slide.effect-slide { transform: translateX(150px); }
+        .slide.effect-slide.active { transform: translateX(0); }
+
+        /* نظام 4: الدوران الخفيف (Rotate Soft) */
+        .slide.effect-rotate { transform: scale(0.9) rotate(-5deg); }
+        .slide.effect-rotate.active { transform: scale(1) rotate(0deg); }
+
         .slide-img-box { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; }
-        .slide-img-box img { max-width: 85%; max-height: 85%; border-radius: 35px; box-shadow: 0 25px 60px rgba(0,0,0,0.12); object-fit: cover; border: 4px solid #ffffff; background: #fff; }
+        .slide-img-box img { max-width: 85%; max-height: 85%; border-radius: 35px; box-shadow: 0 25px 60px rgba(0,0,0,0.15); object-fit: cover; border: 4px solid #ffffff; background: #fff; }
         
         .slide-info { flex: 1.2; padding: 40px; text-align: right; display: flex; flex-direction: column; justify-content: center; }
         .slide-title { font-size: 75px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; color: #0f172a; text-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -80,14 +86,12 @@
         </div>
     </div>
 
-    <!-- شريط الترحيب -->
     <div class="welcome-ticker-box">
         <div class="ticker-content" id="tickerText">
             <i class="fas fa-mug-hot"></i> جاري التحميل...
         </div>
     </div>
 
-    <!-- بوكس الإعلان الترويجي للأدمن -->
     <div id="adminPromoBox" class="admin-promo-banner" style="display: none;">
         <div class="promo-card">
             <div class="promo-info">
@@ -100,7 +104,6 @@
         </div>
     </div>
 
-    <!-- حاوية عرض منتجات الكافيه (منظمة وبدون أي تداخل) -->
     <div class="slider-container" id="slider">
         <div style="text-align: center; color: #64748b; font-size: 30px;">
             <i class="fas fa-spinner fa-spin" style="font-size: 60px; color: var(--accent); margin-bottom: 20px;"></i>
@@ -130,6 +133,9 @@
         let currentPromoIndex = 0;
         let promoInterval = null;
         let productInterval = null;
+        
+        // مصفوفة أنظمة الحركات المختلفة
+        const effects = ['effect-fade', 'effect-zoom', 'effect-slide', 'effect-rotate'];
 
         async function fetchTvData() {
             try {
@@ -194,7 +200,6 @@
                 return;
             }
 
-            // بناء HTML المنتجات دفعة واحدة لتفادي تداخل العناصر
             let slidesHtml = '';
             products.forEach((p, index) => {
                 let priceDisplay = `${p.price} ج.م`;
@@ -202,8 +207,11 @@
                     priceDisplay = `<span class="old-price-tv">${p.original_price} ج.م</span> <span style="color:#16a34a;">${p.price} ج.م</span>`;
                 }
 
+                // اختيار حركة عشوائية أو بالتبادل لكل منتج
+                let randomEffect = effects[index % effects.length];
+
                 slidesHtml += `
-                    <div class="slide ${index === 0 ? 'active' : ''}">
+                    <div class="slide ${randomEffect} ${index === 0 ? 'active' : ''}">
                         <div class="slide-info">
                             <div class="slide-title">${p.name}</div>
                             <div class="slide-price">${priceDisplay}</div>
