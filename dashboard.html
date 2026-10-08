@@ -48,8 +48,8 @@
         .s-soon { background: rgba(52, 152, 219, 0.2); color: #3498db; }
         
         .order-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; }
-        .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; font-size: 18px; font-weight: bold; }
-        .table-badge { background: var(--accent); color: #000; padding: 5px 15px; border-radius: 8px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; font-size: 18px; font-weight: bold; }
+        .table-badge { background: var(--accent); color: #000; padding: 5px 15px; border-radius: 8px; font-size: 15px; }
         .item-list { list-style: none; padding: 0; margin: 0; font-size: 16px; }
         .item-list li { padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .notes { background: rgba(231, 76, 60, 0.1); color: #e74c3c; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
@@ -95,6 +95,7 @@
         <div id="ordersContainer"></div>
     </div>
 
+    <!-- قسم الطلبات السابقة (تم تحديثه لعرض الطاولة واسم التليفون والإحداثيات) -->
     <div id="history" class="tab-content">
         <div class="card">
             <h3><i class="fas fa-history" style="color: #3498db;"></i> سجل الطلبات السابقة (تُحذف أوتوماتيكياً كل 24 ساعة)</h3>
@@ -118,12 +119,10 @@
             <div class="input-group">
                 <input type="text" id="prodName" class="input-field" placeholder="اسم المنتج (مثال: شاي)">
                 <input type="text" id="prodCategory" class="input-field" placeholder="القسم (مثال: مشروبات ساخنة)">
-                
                 <div class="price-row">
                     <input type="number" id="prodPrice" class="input-field" placeholder="سعر البيع">
                     <input type="number" id="prodOriginalPrice" class="input-field" placeholder="السعر الأصلي للخصم">
                 </div>
-                
                 <select id="prodStatus" class="input-field">
                     <option value="available">متوفر حالياً</option>
                     <option value="out_of_stock">غير متوفر (خلصان)</option>
@@ -280,7 +279,7 @@
                 for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let notesHtml = order.notes ? `<div class="notes"><i class="fas fa-exclamation-circle"></i> ملاحظة: ${order.notes}</div>` : '';
                 
-                let deviceTag = `<div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> ${order.device_info || 'هاتف محمول'}</div>`;
+                let deviceTag = `<div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'هاتف محمول'}</div>`;
                 let locationBox = `
                     <div class="info-box">
                         <span class="info-text"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> ${order.location_coords || 'غير متاح'}</span>
@@ -289,7 +288,10 @@
 
                 newHtml += `
                     <div class="order-card" id="order-${order.id}">
-                        <div class="order-header"><span>طلب #${order.id}</span><span class="table-badge">طاولة ${order.table_number}</span></div>
+                        <div class="order-header">
+                            <span>طلب #${order.id}</span>
+                            <span class="table-badge"><i class="fas fa-chair"></i> طاولة ${order.table_number}</span>
+                        </div>
                         <ul class="item-list">${itemsHtml}</ul>${notesHtml}
                         ${deviceTag}
                         ${locationBox}
@@ -309,6 +311,7 @@
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
+        // جلب الطلبات السابقة مع عرض رقم الطاولة واسم التليفون والإحداثيات
         async function loadHistoryOrders() {
             const container = document.getElementById('historyContainer');
             container.innerHTML = '<p style="text-align: center; color: var(--accent);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
@@ -337,7 +340,10 @@
 
                 container.innerHTML += `
                     <div class="order-card" style="border-right-color: #3498db; opacity: 0.9;">
-                        <div class="order-header"><span>طلب #${order.id} (${timeStr})</span><span class="table-badge" style="background:#3498db; color:#fff;">مكتمل</span></div>
+                        <div class="order-header">
+                            <span>طلب #${order.id} (${timeStr})</span>
+                            <span class="table-badge" style="background:#3498db; color:#fff;"><i class="fas fa-chair"></i> طاولة ${order.table_number}</span>
+                        </div>
                         <ul class="item-list">${itemsHtml}</ul>
                         <div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'هاتف محمول'}</div>
                         ${locationBox}
