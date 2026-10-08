@@ -27,9 +27,9 @@
         .btn { padding: 12px 20px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: white; font-size: 15px; transition: 0.2s; }
         .btn:active { transform: scale(0.95); }
         .btn-add { background: #2ecc71; min-width: 150px; }
-        .btn-clean { background: #e74c3c; width: 100%; font-size: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2); }
+        .btn-clean { background: #e74c3c; width: 100%; font-size: 16px; padding: 15px; }
         
-        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
+        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 15px; }
         .cafe-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
         .cafe-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; color: var(--accent); }
         .cafe-details { color: #94a3b8; font-size: 14px; }
@@ -44,10 +44,10 @@
         .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 12px;}
         .btn-qr { background: #8e44ad; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 12px;}
 
-        /* قسم إعلانات الأدمن المميزة */
+        /* تصميم قسم الإعلانات المتعددة للصور الـ 5 */
         .admin-ad-section { background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px; border-radius: 10px; margin-top: 8px; }
-        .admin-ad-section h4 { margin: 0 0 8px 0; color: #f59e0b; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-
+        .slide-item-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.05); }
+        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; }
         .modal-box { background: #1e293b; padding: 30px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .modal-box img { width: 200px; height: 200px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
@@ -80,7 +80,7 @@
     </div>
 
     <div class="card" style="border-right: 5px solid #f39c12;">
-        <h3><i class="fas fa-store" style="color: #f39c12;"></i> الكافيهات المشتركة وإدارة الإعلانات الترويجية</h3>
+        <h3><i class="fas fa-store" style="color: #f39c12;"></i> الكافيهات المشتركة والإعلانات المميزة (حتى 5 صور)</h3>
         <div class="cafe-grid" id="cafesList">
             <p style="text-align: center; color: #777;">جاري التحميل...</p>
         </div>
@@ -128,6 +128,26 @@
                     const customerLink = `${currentPath}/index.html?cafe=${token}`;
                     const tvLink = `${currentPath}/tv.html?cafe=${token}`;
 
+                    // استخراج الـ Slides المخزنة أو تهيئة 5 مربعات فارغة
+                    let slides = st.ad_slides || [];
+                    let slidesHtml = '';
+                    for(let i=0; i<5; i++) {
+                        let s = slides[i] || { title: '', desc: '', image: '' };
+                        slidesHtml += `
+                            <div class="slide-item-box">
+                                <div style="font-size:12px; color:var(--accent); font-weight:bold; margin-bottom:5px;">الصورة والعرض رقم (${i+1})</div>
+                                <input type="text" id="slide-title-${c.id}-${i}" class="input-field" placeholder="عنوان العرض (مثال: عرض البرجر)" value="${s.title}" style="padding:6px; font-size:12px; margin-bottom:5px;">
+                                <input type="text" id="slide-desc-${c.id}-${i}" class="input-field" placeholder="تفاصيل العرض (مثال: ساندوتش + بيبسي بـ 50ج)" value="${s.desc}" style="padding:6px; font-size:12px; margin-bottom:5px;">
+                                
+                                <input type="file" id="slide-file-${c.id}-${i}" accept="image/*" style="display:none;" onchange="previewSlideImage(event, ${c.id}, ${i})">
+                                <label for="slide-file-${c.id}-${i}" class="input-field" style="cursor:pointer; text-align:center; padding:6px; font-size:11px; background:rgba(255,255,255,0.05); display:block;">
+                                    <i class="fas fa-image"></i> <span id="slide-img-name-${c.id}-${i}">${s.image ? 'تم اختيار الصورة' : 'اختر صورة (عادية أو متحركة GIF)'}</span>
+                                </label>
+                                <input type="hidden" id="slide-img-base-${c.id}-${i}" value="${s.image}">
+                            </div>
+                        `;
+                    }
+
                     list.innerHTML += `
                         <div class="cafe-card">
                             <div class="cafe-header">
@@ -139,25 +159,22 @@
                                 <div><i class="fas fa-calendar-alt"></i> انتهاء الاشتراك: <b dir="ltr">${c.subscription_end || 'غير محدد'}</b></div>
                             </div>
                             
-                            <!-- قسم إعلانات الأدمن الخارجي -->
+                            <!-- إعلانات الأدمن المتعددة (حتى 5 صور) -->
                             <div class="admin-ad-section">
-                                <h4><i class="fas fa-bullhorn"></i> الإعلان الترويجي الخارجي (تحكم الأدمن)</h4>
-                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                    <input type="text" id="ad-title-${c.id}" class="input-field" placeholder="عنوان الإعلان (مثال: مطعم البرنس)" value="${st.ad_title || ''}" style="padding:8px; font-size:13px;">
-                                    <input type="text" id="ad-desc-${c.id}" class="input-field" placeholder="تفاصيل العرض (مثال: ساندوتش شيش بـ 45ج)" value="${st.ad_desc || ''}" style="padding:8px; font-size:13px;">
-                                    <input type="text" id="ad-phone-${c.id}" class="input-field" placeholder="رقم للتواصل" value="${st.ad_phone || ''}" style="padding:8px; font-size:13px;">
-                                    
-                                    <!-- رفع صورة متحركة أو ثابتة للإعلان -->
-                                    <input type="file" id="ad-img-file-${c.id}" accept="image/*" style="display:none;" onchange="previewAdImage(event, ${c.id})">
-                                    <label for="ad-img-file-${c.id}" class="input-field" style="cursor:pointer; text-align:center; padding:8px; font-size:12px; background:rgba(255,255,255,0.05);">
-                                        <i class="fas fa-image"></i> <span id="ad-img-name-${c.id}">${st.ad_image ? 'تم اختيار صورة الإعلان' : 'اختر صورة متحركة/ثابتة للإعلان'}</span>
-                                    </label>
-                                    <input type="hidden" id="ad-img-base-${c.id}" value="${st.ad_image || ''}">
+                                <h4 style="margin:0 0 8px 0; color:#f59e0b; font-size:14px;"><i class="fas fa-images"></i> الإعلانات الترويجية المميزة (حتى 5 صور وعروض)</h4>
+                                
+                                <div style="margin-bottom:8px;">
+                                    <label style="font-size:12px; color:#94a3b8;">رقم الهاتف الثابت للتواصل:</label>
+                                    <input type="text" id="ad-phone-${c.id}" class="input-field" placeholder="01000000000" value="${st.ad_phone || ''}" style="padding:8px; font-size:13px; margin-top:3px;">
+                                </div>
 
-                                    <div style="display:flex; gap:8px; margin-top:5px;">
-                                        <button class="btn" style="background:#2ecc71; padding:8px; font-size:13px; flex:1;" onclick="saveAdminAd(${c.id}, true)"><i class="fas fa-play-circle"></i> تشغيل الإعلان</button>
-                                        <button class="btn" style="background:#e74c3c; padding:8px; font-size:13px; flex:1;" onclick="saveAdminAd(${c.id}, false)"><i class="fas fa-stop-circle"></i> إيقاف وإرجاع إعلان الكافيه</button>
-                                    </div>
+                                <div style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                                    ${slidesHtml}
+                                </div>
+
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button class="btn" style="background:#2ecc71; padding:10px; font-size:13px; flex:1;" onclick="saveMultiSlideAd(${c.id}, true)"><i class="fas fa-play-circle"></i> تشغيل الإعلانات</button>
+                                    <button class="btn" style="background:#e74c3c; padding:10px; font-size:13px; flex:1;" onclick="saveMultiSlideAd(${c.id}, false)"><i class="fas fa-stop-circle"></i> إيقاف وإرجاع الكافيه</button>
                                 </div>
                             </div>
 
@@ -190,57 +207,57 @@
             }
         }
 
-        // معاينة صورة الإعلان الخارجي
-        function previewAdImage(event, cafeId) {
+        function previewSlideImage(event, cafeId, index) {
             const file = event.target.files[0];
             if (file) {
-                document.getElementById(`ad-img-name-${cafeId}`).innerText = file.name;
+                document.getElementById(`slide-img-name-${cafeId}-${index}`).innerText = file.name;
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById(`ad-img-base-${cafeId}`).value = e.target.result;
+                    document.getElementById(`slide-img-base-${cafeId}-${index}`).value = e.target.result;
                 }
                 reader.readAsDataURL(file);
             }
         }
 
-        // حفظ وتشغيل/إيقاف الإعلان الترويجي الخارجي
-        async function saveAdminAd(cafeId, isActive) {
-            const title = document.getElementById(`ad-title-${cafeId}`).value;
-            const desc = document.getElementById(`ad-desc-${cafeId}`).value;
+        async function saveMultiSlideAd(cafeId, isActive) {
             const phone = document.getElementById(`ad-phone-${cafeId}`).value;
-            const image = document.getElementById(`ad-img-base-${cafeId}`).value;
+            let slides = [];
+
+            for(let i=0; i<5; i++) {
+                let title = document.getElementById(`slide-title-${cafeId}-${i}`).value;
+                let desc = document.getElementById(`slide-desc-${cafeId}-${i}`).value;
+                let image = document.getElementById(`slide-img-base-${cafeId}-${i}`).value;
+                
+                if(image || title) {
+                    slides.push({ title: title, desc: desc, image: image });
+                }
+            }
 
             const { error } = await db.from('settings').upsert({
                 cafe_id: cafeId,
                 is_ads_active: isActive,
-                ad_title: title,
-                ad_desc: desc,
                 ad_phone: phone,
-                ad_image: image
+                ad_slides: slides
             }, { onConflict: 'cafe_id' });
 
             if (error) {
-                alert("حدث خطأ أثناء حفظ الإعلان.");
+                alert("حدث خطأ أثناء حفظ الإعلانات.");
             } else {
                 if(isActive) {
-                    alert("🚀 تم تشغيل الإعلان الترويجي بنجاح! سيظهر على شاشة الكافيه فوراً.");
+                    alert(`🚀 تم تشغيل نظام الإعلانات (${slides.length} صور) بنجاح!`);
                 } else {
-                    alert("⏹️ تم إيقاف الإعلان الترويجي، وعاد إعلان الكافيه الأصلي للعمل.");
+                    alert("⏹️ تم إيقاف الإعلانات الخارجية وعاد إعلان الكافيه الأصلي.");
                 }
                 loadCafes();
             }
         }
 
-        function copyLink(link) {
-            navigator.clipboard.writeText(link).then(() => { alert('تم نسخ الرابط بنجاح!'); });
-        }
-
+        function copyLink(link) { navigator.clipboard.writeText(link).then(() => { alert('تم نسخ الرابط!'); }); }
         function showQrModal(cafeName, link) {
             document.getElementById('qrCafeName').innerText = cafeName;
             document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(link)}`;
             document.getElementById('qrModal').style.display = 'flex';
         }
-
         function closeQrModal() { document.getElementById('qrModal').style.display = 'none'; }
 
         async function addCafe() {
@@ -248,19 +265,14 @@
             const user = document.getElementById('newUser').value;
             const pass = document.getElementById('newPass').value;
             const endDate = document.getElementById('newDate').value;
-            if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات!');
+            if(!name || !user || !pass || !endDate) return alert('أكمل البيانات!');
             
             const randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
             const { error } = await db.from('cafes').insert([{ name: name, owner_username: user, owner_password: pass, is_active: true, subscription_end: endDate, public_token: randomToken }]);
-            
-            if(error) alert('خطأ، ربما اسم المستخدم موجود مسبقاً.');
-            else { alert('✅ تم إنشاء الكافيه بنجاح!'); loadCafes(); }
+            if(error) alert('خطأ في اسم المستخدم'); else { alert('✅ تم إنشاء الكافيه!'); loadCafes(); }
         }
 
-        async function toggleStatus(id, isActive) {
-            await db.from('cafes').update({ is_active: isActive }).eq('id', id); loadCafes();
-        }
-
+        async function toggleStatus(id, isActive) { await db.from('cafes').update({ is_active: isActive }).eq('id', id); loadCafes(); }
         async function addMonth(id, currentEndDate) {
             let d = currentEndDate ? new Date(currentEndDate) : new Date();
             d.setDate(d.getDate() + 30); 
