@@ -20,24 +20,27 @@
         .product-card { position: relative; background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; transition: 0.2s; }
         .product-card:active { transform: scale(0.97); border-color: var(--accent); }
         
-        /* بادج الحالة للزبون */
-        .status-badge { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; color: #fff; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .status-badge { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; color: #fff; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .status-badge.out { background: rgba(231, 76, 60, 0.95); backdrop-filter: blur(5px); }
         .status-badge.soon { background: rgba(52, 152, 219, 0.95); backdrop-filter: blur(5px); }
+        .status-badge.discount { background: rgba(22, 163, 74, 0.95); backdrop-filter: blur(5px); }
         
         .product-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 1px solid var(--border-color); }
         .no-img-placeholder { width: 100%; height: 130px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--border-color); }
         .no-img-placeholder i { font-size: 40px; color: #cbd5e1; }
         .product-info { padding: 12px; text-align: center; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
         .product-name { font-size: 15px; margin-bottom: 5px; font-weight: 800; color: var(--text-main); }
-        .product-price { color: #d97706; font-size: 18px; font-weight: 900; margin-bottom: 12px; }
         
+        .price-box { margin-bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .product-price { color: #d97706; font-size: 17px; font-weight: 900; }
+        .old-price { text-decoration: line-through; color: #94a3b8; font-size: 13px; font-weight: bold; }
+
         .controls { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px; padding: 5px; border: 1px solid var(--border-color); min-height: 34px;}
         .btn { background: #fff; color: var(--text-main); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .qty { font-size: 16px; font-weight: bold; color: var(--text-main); width: 25px; text-align: center; }
         
-        .disabled-text { color: #e74c3c; font-weight: bold; font-size: 14px; text-align: center; width: 100%; }
+        .disabled-text { color: #e74c3c; font-weight: bold; font-size: 13px; text-align: center; width: 100%; }
 
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); border-radius: 24px 24px 0 0; }
         .input-row { display: flex; gap: 10px; }
@@ -90,6 +93,34 @@
         const cafeId = parseInt(urlParams.get('id')) || 1; 
         let cart = {}; 
 
+        // دالة ذكية لاكتشاف نوع وهاتف الزبون بدقة
+        function getClientDeviceModel() {
+            const ua = navigator.userAgent;
+            let model = "هاتف محمول";
+            
+            if (/android/i.test(ua)) {
+                let match = ua.match(/;\s*([A-Za-z0-9\s\-]+)\s+Build\//);
+                if (match && match[1]) {
+                    model = match[1].trim();
+                } else {
+                    let match2 = ua.match(/Android.*;\s*([^\)]+)\)/);
+                    if (match2 && match2[1]) {
+                        let parts = match2[1].split(';');
+                        model = parts[parts.length - 1].trim();
+                    } else {
+                        model = "Android Device";
+                    }
+                }
+            } else if (/iphone|ipad|ipod/i.test(ua)) {
+                model = "iPhone / iOS Device";
+            } else if (/windows/i.test(ua)) {
+                model = "Windows PC";
+            } else if (/macintosh|mac os x/i.test(ua)) {
+                model = "Mac Computer";
+            }
+            return model;
+        }
+
         function showToast(message) {
             const toast = document.getElementById("toast");
             toast.innerText = message; toast.className = "show";
@@ -120,9 +151,21 @@
                     cart[p.id] = { name: p.name, qty: 0 }; 
                     let imageElement = (p.image_url && p.image_url.trim() !== '') ? `<img src="${p.image_url}" class="product-img">` : `<div class="no-img-placeholder"><i class="fas fa-mug-hot"></i></div>`;
                     
-                    // تحديد شكل الأزرار والبادج حسب حالة المنتج
                     let statusBadgeHtml = '';
                     let controlsHtml = '';
+                    let priceHtml = '';
+
+                    // فحص وجود خصم
+                    if (p.original_price && p.original_price > p.price) {
+                        statusBadgeHtml = '<div class="status-badge discount">عرض لفترة محدودة</div>';
+                        priceHtml = `
+                            <div class="price-box">
+                                <span class="old-price">${p.original_price} ج.م</span>
+                                <span class="product-price">${p.price} ج.م</span>
+                            </div>`;
+                    } else {
+                        priceHtml = `<div class="product-price" style="margin-bottom:10px;">${p.price} ج.م</div>`;
+                    }
                     
                     if (p.status === 'out_of_stock') {
                         statusBadgeHtml = '<div class="status-badge out">خلصان</div>';
@@ -131,7 +174,6 @@
                         statusBadgeHtml = '<div class="status-badge soon">قريباً</div>';
                         controlsHtml = '<div class="disabled-text">قريباً</div>';
                     } else {
-                        // متوفر (الوضع الطبيعي)
                         controlsHtml = `
                             <button class="btn" onclick="updateQty(${p.id}, 1)">+</button>
                             <div class="qty" id="qty-${p.id}">0</div>
@@ -144,7 +186,7 @@
                             ${statusBadgeHtml}
                             ${imageElement}
                             <div class="product-info">
-                                <div><div class="product-name">${p.name}</div><div class="product-price">${p.price} ج.م</div></div>
+                                <div><div class="product-name">${p.name}</div>${priceHtml}</div>
                                 <div class="controls">
                                     ${controlsHtml}
                                 </div>
@@ -181,12 +223,16 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الإرسال...';
             btn.disabled = true;
 
+            // جلب اسم هاتف العميل
+            const clientDevice = getClientDeviceModel();
+
             const { error } = await db.from('orders').insert([{ 
                 cafe_id: cafeId, 
                 table_number: tableNum, 
                 items: finalItems, 
                 notes: notes,
-                status: 'pending' 
+                status: 'pending',
+                device_info: clientDevice
             }]);
 
             btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left: 8px;"></i> تأكيد وإرسال الطلب';

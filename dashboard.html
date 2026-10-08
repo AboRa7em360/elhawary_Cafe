@@ -52,6 +52,7 @@
         .item-list { list-style: none; padding: 0; margin: 0; font-size: 16px; }
         .item-list li { padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .notes { background: rgba(231, 76, 60, 0.1); color: #e74c3c; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
+        .device-tag { background: rgba(52, 152, 219, 0.15); color: #3498db; padding: 5px 10px; border-radius: 6px; font-size: 12px; margin-top: 8px; display: inline-block; font-weight: bold; }
         .btn-done { background: #3498db; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
         
         .empty-orders { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; }
@@ -70,10 +71,10 @@
         .top-item-name { font-weight: bold; font-size: 16px; }
         .top-item-qty { background: rgba(245, 158, 11, 0.2); color: var(--accent); padding: 4px 12px; border-radius: 8px; font-weight: bold; font-size: 14px;}
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;}
-        .nav-item { color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 12px; width: 33%; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;}
+        .nav-item { color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; width: 25%; }
         .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 20px; }
+        .nav-item i { font-size: 18px; }
     </style>
 </head>
 <body>
@@ -89,6 +90,16 @@
         <div id="ordersContainer"></div>
     </div>
 
+    <!-- قسم الطلبات السابقة (History) -->
+    <div id="history" class="tab-content">
+        <div class="card">
+            <h3><i class="fas fa-history" style="color: #3498db;"></i> سجل الطلبات السابقة (تُحذف أوتوماتيكياً كل 24 ساعة)</h3>
+            <div id="historyContainer" style="margin-top: 15px;">
+                <p style="text-align: center; color: #777;">جاري التحميل...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- قسم المنيو والإعلانات -->
     <div id="menu" class="tab-content">
         <div class="card" style="border-right: 4px solid var(--accent);">
@@ -100,11 +111,15 @@
         </div>
 
         <div class="card" id="productFormCard" style="border-right: 4px solid #2ecc71;">
-            <h3 id="formTitle"><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد</h3>
+            <h3 id="formTitle"><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد وعرض</h3>
             <div class="input-group">
                 <input type="text" id="prodName" class="input-field" placeholder="اسم المنتج (مثال: شاي)">
                 <input type="text" id="prodCategory" class="input-field" placeholder="القسم (مثال: مشروبات ساخنة)">
-                <input type="number" id="prodPrice" class="input-field" placeholder="السعر (ج.م)">
+                
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="prodPrice" class="input-field" placeholder="سعر البيع (الحالي)">
+                    <input type="number" id="prodOriginalPrice" class="input-field" placeholder="السعر الأصلي (اختياري للخصم)">
+                </div>
                 
                 <select id="prodStatus" class="input-field">
                     <option value="available">متوفر حالياً</option>
@@ -151,8 +166,10 @@
         <button class="btn btn-save" onclick="loadReports()" style="margin-top: 10px;"><i class="fas fa-sync-alt"></i> تحديث التقارير الآن</button>
     </div>
 
+    <!-- الشريط السفلي المحدث -->
     <div class="bottom-nav">
         <div class="nav-item" id="nav-bar" onclick="switchTab('bar', this)"><i class="fas fa-bell"></i> البار</div>
+        <div class="nav-item" id="nav-history" onclick="switchTab('history', this)"><i class="fas fa-history"></i> السابقة</div>
         <div class="nav-item" id="nav-menu" onclick="switchTab('menu', this)"><i class="fas fa-edit"></i> المنيو</div>
         <div class="nav-item" id="nav-reports" onclick="switchTab('reports', this)"><i class="fas fa-chart-bar"></i> التقارير</div>
     </div>
@@ -174,34 +191,21 @@
         let lastOrderId = null;
         let allProducts = []; 
         let editingProductId = null; 
-        let wakeLock = null; // متغير لمنع الشاشة من الانغلاق
+        let wakeLock = null;
 
-        // دالة منع قفل الشاشة
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', () => {
-                        console.log('Wake Lock was released');
-                    });
                 }
-            } catch (err) {
-                console.error('Wake Lock error:', err);
-            }
+            } catch (err) {}
         }
-
-        // إذا رجع المستخدم للمتصفح، نطلب منع قفل الشاشة مرة أخرى
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible' && soundEnabled) {
-                requestWakeLock();
-            }
-        });
 
         if(soundEnabled) {
             const btn = document.getElementById('soundBtn');
             btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
             btn.style.background = '#3498db';
-            requestWakeLock(); // تشغيل منع قفل الشاشة لو الصوت متفعل من قبل
+            requestWakeLock();
         }
 
         const savedTab = localStorage.getItem('active_tab') || 'bar';
@@ -214,10 +218,7 @@
             const btn = document.getElementById('soundBtn');
             btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
             btn.style.background = '#3498db';
-            
-            // تفعيل منع قفل الشاشة
             requestWakeLock();
-
             let msg = new SpeechSynthesisUtterance("تم تفعيل التنبيهات الصوتية");
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
@@ -238,6 +239,7 @@
             el.classList.add('active');
             localStorage.setItem('active_tab', tabId); 
             if(tabId === 'reports') loadReports();
+            if(tabId === 'history') loadHistoryOrders();
         }
 
         async function loadOrders() {
@@ -262,10 +264,13 @@
                 let itemsHtml = '';
                 for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let notesHtml = order.notes ? `<div class="notes"><i class="fas fa-exclamation-circle"></i> ملاحظة: ${order.notes}</div>` : '';
+                let deviceTag = `<div class="device-tag"><i class="fas fa-mobile-alt"></i> ${order.device_info || 'غير معروف'}</div>`;
+                
                 newHtml += `
                     <div class="order-card" id="order-${order.id}">
                         <div class="order-header"><span>طلب #${order.id}</span><span class="table-badge">طاولة ${order.table_number}</span></div>
                         <ul class="item-list">${itemsHtml}</ul>${notesHtml}
+                        ${deviceTag}
                         <button class="btn-done" onclick="finishOrder(${order.id})"><i class="fas fa-check"></i> تم التنفيذ</button>
                     </div>`;
             });
@@ -280,6 +285,37 @@
                 setTimeout(() => card.remove(), 250);
             }
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
+        }
+
+        // جلب الطلبات السابقة لعرضها في تبويب History
+        async function loadHistoryOrders() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '<p style="text-align: center; color: var(--accent);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
+
+            // تنظيف الطلبات الأقدم من 24 ساعة أوتوماتيك
+            let d = new Date(); d.setDate(d.getDate() - 1);
+            await db.from('orders').delete().eq('cafe_id', cafeId).eq('status', 'completed').lt('created_at', d.toISOString());
+
+            const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'completed').order('created_at', { ascending: false });
+
+            if(!orders || orders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات سابقة في آخر 24 ساعة</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            orders.forEach(order => {
+                let itemsHtml = '';
+                for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
+                let timeStr = new Date(order.created_at).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+                
+                container.innerHTML += `
+                    <div class="order-card" style="border-right-color: #3498db; opacity: 0.9;">
+                        <div class="order-header"><span>طلب #${order.id} (${timeStr})</span><span class="table-badge" style="background:#3498db; color:#fff;">مكتمل</span></div>
+                        <ul class="item-list">${itemsHtml}</ul>
+                        <div class="device-tag"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'غير معروف'}</div>
+                    </div>`;
+            });
         }
 
         let currentBase64 = '';
@@ -297,14 +333,22 @@
             const name = document.getElementById('prodName').value;
             const cat = document.getElementById('prodCategory').value;
             const price = document.getElementById('prodPrice').value;
+            const originalPrice = document.getElementById('prodOriginalPrice').value;
             const status = document.getElementById('prodStatus').value; 
-            if(!name || !price) return alert("الاسم والسعر مطلوبين");
+            if(!name || !price) return alert("الاسم وسعر البيع مطلوبين");
             
             const btn = document.getElementById('saveProductBtn');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
             btn.disabled = true;
 
-            const productData = { cafe_id: cafeId, name: name, category: cat, price: price, status: status };
+            const productData = { 
+                cafe_id: cafeId, 
+                name: name, 
+                category: cat, 
+                price: price, 
+                original_price: originalPrice ? parseFloat(originalPrice) : null,
+                status: status 
+            };
             if(currentBase64) productData.image_url = currentBase64; 
 
             if(editingProductId) {
@@ -327,9 +371,10 @@
             document.getElementById('prodName').value = p.name;
             document.getElementById('prodCategory').value = p.category;
             document.getElementById('prodPrice').value = p.price;
+            document.getElementById('prodOriginalPrice').value = p.original_price || '';
             document.getElementById('prodStatus').value = p.status || 'available';
             
-            document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> تعديل المنتج';
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> تعديل المنتج والعرض';
             const btn = document.getElementById('saveProductBtn');
             btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
             btn.className = 'btn btn-edit-mode';
@@ -343,11 +388,12 @@
             document.getElementById('prodName').value = '';
             document.getElementById('prodCategory').value = '';
             document.getElementById('prodPrice').value = '';
+            document.getElementById('prodOriginalPrice').value = '';
             document.getElementById('prodStatus').value = 'available';
             document.getElementById('fileName').innerText = 'اختر صورة للمنتج من الاستوديو';
             currentBase64 = '';
             
-            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد';
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد وعرض';
             const btn = document.getElementById('saveProductBtn');
             btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للمنيو';
             btn.className = 'btn btn-add';
@@ -368,13 +414,18 @@
                     else if(p.status === 'coming_soon') statusBadge = '<span class="status-badge s-soon">قريباً</span>';
                     else statusBadge = '<span class="status-badge s-available">متوفر</span>';
 
+                    let priceText = `${p.price} ج.م`;
+                    if(p.original_price && p.original_price > p.price) {
+                        priceText = `<span style="text-decoration: line-through; color:#94a3b8; font-size:12px; margin-left:5px;">${p.original_price}</span> <span style="color:#2ecc71;">${p.price} ج.م</span>`;
+                    }
+
                     list.innerHTML += `
                         <li class="product-item">
                             <div style="display: flex; align-items: center;">
                                 ${imgHtml}
                                 <div style="margin-right: 10px;">
                                     <b>${p.name}</b> <br>
-                                    <small style="color:#f59e0b;">${p.price} ج.م</small><br>
+                                    <small>${priceText}</small><br>
                                     ${statusBadge}
                                 </div>
                             </div>
