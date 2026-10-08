@@ -29,24 +29,47 @@
             100% { transform: translateX(100vw); }
         }
 
-        /* بوكس الإعلان الخارجي المرتب والمظبوط تماماً */
-        .admin-promo-banner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.95); backdrop-filter: blur(12px); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 30px; box-sizing: border-box; }
-        .promo-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid var(--accent); border-radius: 25px; display: flex; flex-direction: row-reverse; width: 90%; max-width: 1200px; height: 600px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.9); animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* بوكس الإعلان الخارجي (الكتابة فوق والصورة تحت بحركات فخمة) */
+        .admin-promo-banner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 9, 11, 0.98); backdrop-filter: blur(15px); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         
-        /* قسم الصورة منظم على اليمين أو الشمال بوضوح */
-        .promo-img { flex: 1; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; border-left: 2px solid rgba(255,255,255,0.05); }
-        .promo-img img { width: 100%; height: 100%; object-fit: cover; }
+        .promo-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 3px solid var(--accent); border-radius: 30px; display: flex; flex-direction: column; width: 90%; max-width: 950px; height: 85vh; overflow: hidden; box-shadow: 0 35px 90px rgba(0,0,0,0.95); animation: popIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
-        /* قسم النصوص مرتب وبعيد عن الصورة تماماً */
-        .promo-info { flex: 1.3; padding: 50px; display: flex; flex-direction: column; justify-content: center; text-align: right; box-sizing: border-box; }
-        .promo-badge { background: #e74c3c; color: #fff; font-size: 15px; font-weight: bold; padding: 6px 16px; border-radius: 20px; display: inline-block; margin-bottom: 20px; width: fit-content; box-shadow: 0 4px 15px rgba(231,76,60,0.4); }
-        .promo-title { font-size: 50px; font-weight: 900; color: #f8fafc; margin-bottom: 20px; line-height: 1.3; }
-        .promo-desc { font-size: 26px; color: #cbd5e1; margin-bottom: 30px; line-height: 1.5; }
-        .promo-phone { font-size: 32px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.1); padding: 12px 25px; border-radius: 15px; border: 1px solid rgba(74, 222, 128, 0.3); display: inline-flex; align-items: center; gap: 15px; width: fit-content; direction: ltr; }
+        /* قسم النصوص فوق بحركات ديناميكية */
+        .promo-info { flex: 1.1; padding: 35px 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; background: rgba(15, 23, 42, 0.6); }
+        
+        .promo-badge { background: linear-gradient(45deg, #e74c3c, #f39c12); color: #fff; font-size: 16px; font-weight: bold; padding: 6px 20px; border-radius: 20px; display: inline-block; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(231,76,60,0.5); animation: bounceBadge 2s infinite; }
+        
+        .promo-title { font-size: 50px; font-weight: 900; color: #f8fafc; margin-bottom: 12px; line-height: 1.2; text-shadow: 0 3px 10px rgba(0,0,0,0.8); animation: slideDown 0.8s ease; }
+        .promo-desc { font-size: 26px; color: #cbd5e1; margin-bottom: 20px; line-height: 1.4; animation: fadeIn 1s ease; }
+        
+        .promo-phone { font-size: 32px; color: #fff; font-weight: 900; background: linear-gradient(135deg, #22c55e, #16a34a); padding: 12px 30px; border-radius: 20px; display: inline-flex; align-items: center; gap: 15px; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4); direction: ltr; animation: pulsePhone 1.5s infinite; }
+        .promo-phone i { color: #fde047; font-size: 30px; }
+
+        /* قسم الصورة تحت بحركات سينمائية تطلع يمين شمال وفوق تحت */
+        .promo-img { flex: 1.4; width: 100%; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border-top: 2px solid rgba(245, 158, 11, 0.2); }
+        .promo-img img { width: 100%; height: 100%; object-fit: cover; animation: cinematicMotion 10s ease-in-out infinite alternate; }
+
+        @keyframes cinematicMotion {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.08) translate(15px, -10px); }
+            100% { transform: scale(1.05) translate(-15px, 10px); }
+        }
 
         @keyframes popIn {
-            0% { transform: scale(0.9); opacity: 0; }
+            0% { transform: scale(0.85); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bounceBadge {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulsePhone {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
         }
 
         .slider-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #09090b 100%); overflow: hidden; }
@@ -78,7 +101,7 @@
         </div>
     </div>
 
-    <!-- بوكس الإعلان الترويجي الخارجي المرتب بشكل شيك ومنفصل عن الصورة -->
+    <!-- بوكس الإعلان الخارجي المطور (كتابة فوق متحركة وصورة تحت بتحركات سينمائية) -->
     <div id="adminPromoBox" class="admin-promo-banner" style="display: none;">
         <div class="promo-card">
             <div class="promo-info">
