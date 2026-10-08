@@ -61,7 +61,6 @@
         .order-actions { display: flex; gap: 10px; margin-top: 15px; }
         .btn-accept { background: #2ecc71; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
         .btn-reject { background: #e74c3c; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
-        .btn-accept:active, .btn-reject:active { transform: scale(0.96); }
         
         .empty-orders { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; }
         .radar-box { position: relative; width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; color: var(--accent); font-size: 30px; }
@@ -70,53 +69,33 @@
         .empty-orders p { opacity: 0.7; font-size: 15px; }
         @keyframes radarPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
         
+        /* قسم التقارير والفلترة */
+        .filter-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-family: inherit; min-width: 120px;}
+        .filter-btn { background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1; min-width: 120px;}
+        
         .reports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(255,255,255,0.05); }
         .stat-icon { font-size: 30px; margin-bottom: 10px; }
         .stat-value { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 5px; direction: ltr;}
         .stat-label { font-size: 13px; color: #94a3b8; font-weight: bold; }
         .top-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .top-item-name { font-weight: bold; font-size: 16px; }
+        .top-item-qty { background: rgba(245, 158, 11, 0.2); color: var(--accent); padding: 4px 12px; border-radius: 8px; font-weight: bold; font-size: 14px;}
 
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;}
         .nav-item { color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; width: 25%; }
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 18px; }
 
-        /* --- الإشعار العائم (Toast Notification) --- */
-        .global-toast { 
-            position: fixed; 
-            top: -100px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background: linear-gradient(135deg, #10b981, #059669); 
-            color: white; 
-            padding: 15px 25px; 
-            border-radius: 50px; 
-            font-weight: bold; 
-            font-size: 16px; 
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); 
-            z-index: 9999; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
+        /* الإشعار العائم */
+        .global-toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 15px 25px; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); z-index: 9999; display: flex; align-items: center; gap: 10px; transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .global-toast.show { top: 30px; }
         
-        /* --- نافذة التأكيد الاحترافية (Custom Modal) --- */
-        .custom-modal-overlay { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); 
-            z-index: 9999; display: flex; justify-content: center; align-items: center; 
-            opacity: 0; visibility: hidden; transition: 0.3s; 
-        }
+        /* نافذة التأكيد */
+        .custom-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; }
         .custom-modal-overlay.show { opacity: 1; visibility: visible; }
-        .custom-modal-box { 
-            background: #1e293b; border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 20px; padding: 25px; width: 85%; max-width: 350px; 
-            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
+        .custom-modal-box { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .custom-modal-overlay.show .custom-modal-box { transform: scale(1); }
         .modal-icon { font-size: 50px; margin-bottom: 15px; }
         .modal-icon.accept { color: #2ecc71; }
@@ -130,12 +109,10 @@
 </head>
 <body>
 
-    <!-- الإشعار العائم للطلبات الجديدة -->
     <div id="globalToast" class="global-toast">
         <i class="fas fa-bell fa-shake"></i> <span id="toastMessage">طلب جديد!</span>
     </div>
 
-    <!-- نافذة التأكيد المنبثقة المخصصة -->
     <div id="customConfirmModal" class="custom-modal-overlay">
         <div class="custom-modal-box">
             <div id="modalIcon" class="modal-icon"><i class="fas fa-question-circle"></i></div>
@@ -154,12 +131,10 @@
         <button class="btn-sound" onclick="toggleSound()" id="soundBtn"><i class="fas fa-volume-mute"></i> تفعيل الصوت</button>
     </div>
 
-    <!-- تبويب البار (الطلبات) -->
     <div id="bar" class="tab-content">
         <div id="ordersContainer"></div>
     </div>
 
-    <!-- تبويب الطلبات السابقة -->
     <div id="history" class="tab-content">
         <div class="card">
             <h3><i class="fas fa-history" style="color: #3498db;"></i> سجل الطلبات السابقة (تُحذف أوتوماتيكياً كل 24 ساعة)</h3>
@@ -169,7 +144,6 @@
         </div>
     </div>
 
-    <!-- تبويب المنيو -->
     <div id="menu" class="tab-content">
         <div class="card" style="border-right: 4px solid var(--accent);">
             <h3><i class="fas fa-bullhorn"></i> إعلان الشريط المتحرك</h3>
@@ -210,8 +184,18 @@
         </div>
     </div>
 
-    <!-- تبويب التقارير -->
+    <!-- قسم التقارير مضاف إليه الفلترة بالتاريخ -->
     <div id="reports" class="tab-content">
+        
+        <div class="filter-box">
+            <div style="width: 100%; font-size: 14px; color: var(--accent); font-weight: bold; margin-bottom: 5px;"><i class="fas fa-filter"></i> فلترة التقارير بالتاريخ</div>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <input type="date" id="reportDateFrom" class="filter-input" title="من تاريخ">
+                <input type="date" id="reportDateTo" class="filter-input" title="إلى تاريخ">
+            </div>
+            <button class="filter-btn" onclick="loadReports()"><i class="fas fa-search"></i> بحث وعرض</button>
+        </div>
+
         <div class="reports-grid">
             <div class="stat-card" style="border-bottom: 4px solid #3498db;">
                 <i class="fas fa-shopping-cart stat-icon" style="color: #3498db;"></i>
@@ -225,13 +209,11 @@
             </div>
         </div>
         <div class="card">
-            <h3><i class="fas fa-fire" style="color: #e74c3c;"></i> المنتجات الأكثر مبيعاً</h3>
+            <h3><i class="fas fa-fire" style="color: #e74c3c;"></i> تفاصيل المنتجات المبيعة</h3>
             <ul class="product-list" id="topItemsList" style="margin-top: 10px;"></ul>
         </div>
-        <button class="btn btn-save" onclick="loadReports()" style="margin-top: 10px;"><i class="fas fa-sync-alt"></i> تحديث التقارير الآن</button>
     </div>
 
-    <!-- النافذة السفلية -->
     <div class="bottom-nav">
         <div class="nav-item" id="nav-bar" onclick="switchTab('bar', this)"><i class="fas fa-bell"></i> البار</div>
         <div class="nav-item" id="nav-history" onclick="switchTab('history', this)"><i class="fas fa-history"></i> السابقة</div>
@@ -240,10 +222,7 @@
     </div>
 
     <script>
-        function logout() { 
-            localStorage.clear(); 
-            window.location.replace('login.html'); 
-        }
+        function logout() { localStorage.clear(); window.location.replace('login.html'); }
 
         const SUPABASE_URL = 'https://izfvaxfhdugqruxigbfa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
@@ -257,12 +236,10 @@
         let processingOrders = new Set();
         let audioCtx = null;
 
-        // حل مشكلة فك حظر الصوت في المتصفحات
         function unlockAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
-        
         document.addEventListener('click', unlockAudio);
         document.addEventListener('touchstart', unlockAudio);
 
@@ -299,11 +276,9 @@
 
         function playAudioAlert(tableNum) {
             if(!soundEnabled) return;
-            
             let msg = new SpeechSynthesisUtterance(`انتباه، طلب جديد على طاولة رقم ${tableNum}`);
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
-            
             if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]); 
 
             try {
@@ -341,9 +316,7 @@
         }
 
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ تم نسخ الإحداثيات بنجاح!');
-            });
+            navigator.clipboard.writeText(text).then(() => { alert('✅ تم نسخ الإحداثيات بنجاح!'); });
         }
 
         async function checkNewOrdersBackground() {
@@ -384,6 +357,12 @@
                 
                 let deviceTag = `<div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'موبايل ذكي'}</div>`;
                 
+                let locationBox = `
+                    <div class="info-box">
+                        <span class="info-text"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> ${order.location_coords || 'غير متاح'}</span>
+                        <button class="copy-coord-btn" onclick="copyToClipboard('${order.location_coords}')"><i class="fas fa-copy"></i> نسخ</button>
+                    </div>`;
+
                 newHtml += `
                     <div class="order-card" id="order-${order.id}">
                         <div class="order-header">
@@ -392,6 +371,7 @@
                         </div>
                         <ul class="item-list">${itemsHtml}</ul>${notesHtml}
                         ${deviceTag}
+                        ${locationBox}
                         <div class="order-actions">
                             <button class="btn-accept" onclick="openConfirmModal('accept', ${order.id})"><i class="fas fa-check"></i> قبول وتنفيذ</button>
                             <button class="btn-reject" onclick="openConfirmModal('reject', ${order.id})"><i class="fas fa-times"></i> رفض الطلب</button>
@@ -401,13 +381,11 @@
             container.innerHTML = newHtml || `<div class="empty-orders"><h3>في انتظار الطلبات...</h3></div>`;
         }
 
-        // --- التحكم في النافذة المنبثقة المخصصة ---
         let pendingAction = null;
         let pendingOrderId = null;
 
         function openConfirmModal(action, id) {
-            pendingAction = action;
-            pendingOrderId = id;
+            pendingAction = action; pendingOrderId = id;
             const modal = document.getElementById('customConfirmModal');
             const icon = document.getElementById('modalIcon');
             const title = document.getElementById('modalTitle');
@@ -415,44 +393,30 @@
             const btn = document.getElementById('modalConfirmBtn');
 
             if(action === 'accept') {
-                icon.className = 'modal-icon accept';
-                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                title.innerText = 'تأكيد القبول';
-                desc.innerText = `هل أنت متأكد من الموافقة على تجهيز طلب #${id}؟`;
-                btn.innerText = 'نعم، تجهيز';
-                btn.style.background = '#2ecc71';
+                icon.className = 'modal-icon accept'; icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                title.innerText = 'تأكيد القبول'; desc.innerText = `هل أنت متأكد من الموافقة على تجهيز طلب #${id}؟`;
+                btn.innerText = 'نعم، تجهيز'; btn.style.background = '#2ecc71';
             } else {
-                icon.className = 'modal-icon reject';
-                icon.innerHTML = '<i class="fas fa-times-circle"></i>';
-                title.innerText = 'رفض وحذف الطلب';
-                desc.innerText = `هل أنت متأكد من إلغاء وحذف طلب #${id} نهائياً؟`;
-                btn.innerText = 'نعم، رفض';
-                btn.style.background = '#e74c3c';
+                icon.className = 'modal-icon reject'; icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+                title.innerText = 'رفض وحذف الطلب'; desc.innerText = `هل أنت متأكد من إلغاء وحذف طلب #${id} نهائياً؟`;
+                btn.innerText = 'نعم، رفض'; btn.style.background = '#e74c3c';
             }
             modal.classList.add('show');
         }
 
-        function closeConfirmModal() {
-            document.getElementById('customConfirmModal').classList.remove('show');
-            pendingAction = null;
-            pendingOrderId = null;
-        }
+        function closeConfirmModal() { document.getElementById('customConfirmModal').classList.remove('show'); pendingAction = null; pendingOrderId = null; }
 
         async function executeConfirmAction() {
             if(!pendingAction || !pendingOrderId) return;
-            const id = pendingOrderId;
-            const action = pendingAction;
+            const id = pendingOrderId; const action = pendingAction;
             closeConfirmModal();
 
             processingOrders.add(id);
             const card = document.getElementById(`order-${id}`);
-            if(card) card.remove();
+            if(card) card.remove(); 
 
-            if(action === 'accept') {
-                await db.from('orders').update({ status: 'completed' }).eq('id', id);
-            } else if(action === 'reject') {
-                await db.from('orders').delete().eq('id', id);
-            }
+            if(action === 'accept') { await db.from('orders').update({ status: 'completed' }).eq('id', id); } 
+            else if(action === 'reject') { await db.from('orders').delete().eq('id', id); }
         }
 
         async function loadHistoryOrders() {
@@ -471,6 +435,13 @@
                 let itemsHtml = '';
                 for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let timeStr = new Date(order.created_at).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+                
+                let locationBox = `
+                    <div class="info-box">
+                        <span class="info-text"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> ${order.location_coords || 'غير متاح'}</span>
+                        <button class="copy-coord-btn" onclick="copyToClipboard('${order.location_coords}')"><i class="fas fa-copy"></i> نسخ</button>
+                    </div>`;
+
                 container.innerHTML += `
                     <div class="order-card" style="border-right-color: #3498db; opacity: 0.9;">
                         <div class="order-header">
@@ -479,6 +450,7 @@
                         </div>
                         <ul class="item-list">${itemsHtml}</ul>
                         <div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'موبايل ذكي'}</div>
+                        ${locationBox}
                     </div>`;
             });
         }
@@ -486,89 +458,36 @@
         let currentBase64 = '';
         function previewImage(event) {
             const file = event.target.files[0];
-            if (file) { 
-                document.getElementById('fileName').innerText = file.name; 
-                const reader = new FileReader(); 
-                reader.onload = function(e) { currentBase64 = e.target.result; }; 
-                reader.readAsDataURL(file); 
-            }
+            if (file) { document.getElementById('fileName').innerText = file.name; const reader = new FileReader(); reader.onload = function(e) { currentBase64 = e.target.result; }; reader.readAsDataURL(file); }
         }
 
         async function saveProduct() {
-            const name = document.getElementById('prodName').value; 
-            const cat = document.getElementById('prodCategory').value; 
-            const price = document.getElementById('prodPrice').value; 
-            const originalPrice = document.getElementById('prodOriginalPrice').value; 
-            const status = document.getElementById('prodStatus').value; 
-
+            const name = document.getElementById('prodName').value; const cat = document.getElementById('prodCategory').value; const price = document.getElementById('prodPrice').value; const originalPrice = document.getElementById('prodOriginalPrice').value; const status = document.getElementById('prodStatus').value; 
             if(!name || !price) return alert("الاسم وسعر البيع مطلوبين");
-
-            const btn = document.getElementById('saveProductBtn'); 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...'; 
-            btn.disabled = true;
-
-            const productData = { 
-                cafe_id: cafeId, 
-                name: name, 
-                category: cat, 
-                price: price, 
-                original_price: originalPrice ? parseFloat(originalPrice) : null, 
-                status: status 
-            };
-
+            const btn = document.getElementById('saveProductBtn'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...'; btn.disabled = true;
+            const productData = { cafe_id: cafeId, name: name, category: cat, price: price, original_price: originalPrice ? parseFloat(originalPrice) : null, status: status };
             if(currentBase64) productData.image_url = currentBase64; 
-
-            if(editingProductId) { 
-                await db.from('products').update(productData).eq('id', editingProductId); 
-                alert("تم تعديل المنتج!"); 
-            } else { 
-                await db.from('products').insert([productData]); 
-                alert("تم الإضافة بنجاح!"); 
-            }
-            cancelEdit(); 
-            loadProducts();
+            if(editingProductId) { await db.from('products').update(productData).eq('id', editingProductId); alert("تم تعديل المنتج!"); } 
+            else { await db.from('products').insert([productData]); alert("تم الإضافة بنجاح!"); }
+            cancelEdit(); loadProducts();
         }
 
         function startEdit(id) {
             const p = allProducts.find(x => x.id === id); if(!p) return;
-            editingProductId = p.id; 
-            document.getElementById('prodName').value = p.name; 
-            document.getElementById('prodCategory').value = p.category; 
-            document.getElementById('prodPrice').value = p.price; 
-            document.getElementById('prodOriginalPrice').value = p.original_price || ''; 
-            document.getElementById('prodStatus').value = p.status || 'available';
-            
+            editingProductId = p.id; document.getElementById('prodName').value = p.name; document.getElementById('prodCategory').value = p.category; document.getElementById('prodPrice').value = p.price; document.getElementById('prodOriginalPrice').value = p.original_price || ''; document.getElementById('prodStatus').value = p.status || 'available';
             document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> تعديل المنتج والعرض';
-            const btn = document.getElementById('saveProductBtn'); 
-            btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات'; 
-            btn.className = 'btn btn-edit-mode'; 
-            document.getElementById('cancelEditBtn').style.display = 'block'; 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const btn = document.getElementById('saveProductBtn'); btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات'; btn.className = 'btn btn-edit-mode'; document.getElementById('cancelEditBtn').style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelEdit() {
-            editingProductId = null; 
-            document.getElementById('prodName').value = ''; 
-            document.getElementById('prodCategory').value = ''; 
-            document.getElementById('prodPrice').value = ''; 
-            document.getElementById('prodOriginalPrice').value = ''; 
-            document.getElementById('prodStatus').value = 'available'; 
-            document.getElementById('fileName').innerText = 'اختر صورة للمنتج'; 
-            currentBase64 = '';
-
+            editingProductId = null; document.getElementById('prodName').value = ''; document.getElementById('prodCategory').value = ''; document.getElementById('prodPrice').value = ''; document.getElementById('prodOriginalPrice').value = ''; document.getElementById('prodStatus').value = 'available'; document.getElementById('fileName').innerText = 'اختر صورة للمنتج'; currentBase64 = '';
             document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد وعرض';
-            const btn = document.getElementById('saveProductBtn'); 
-            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للمنيو'; 
-            btn.className = 'btn btn-add'; 
-            btn.disabled = false; 
-            document.getElementById('cancelEditBtn').style.display = 'none';
+            const btn = document.getElementById('saveProductBtn'); btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للمنيو'; btn.className = 'btn btn-add'; btn.disabled = false; document.getElementById('cancelEditBtn').style.display = 'none';
         }
 
         async function loadProducts() {
             const { data } = await db.from('products').select('*').eq('cafe_id', cafeId).order('category');
-            const list = document.getElementById('productsList'); 
-            list.innerHTML = '';
-
+            const list = document.getElementById('productsList'); list.innerHTML = '';
             if(data && data.length > 0) {
                 allProducts = data; 
                 data.forEach(p => {
@@ -577,46 +496,33 @@
                     let priceText = p.original_price > p.price ? `<span style="text-decoration:line-through; color:#94a3b8; font-size:12px;">${p.original_price}</span> <span style="color:#2ecc71;">${p.price} ج.م</span>` : `${p.price} ج.م`;
                     list.innerHTML += `<li class="product-item"><div style="display:flex; align-items:center;">${imgHtml}<div style="margin-right:10px;"><b>${p.name}</b> <br><small>${priceText}</small><br>${statusBadge}</div></div><div><button class="btn-edit-item" onclick="startEdit(${p.id})"><i class="fas fa-edit"></i></button><button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button></div></li>`;
                 });
-            } else {
-                list.innerHTML = '<p style="text-align: center; color: #777;">المنيو فاضي حالياً</p>';
-            }
+            } else list.innerHTML = '<p style="text-align: center; color: #777;">المنيو فاضي حالياً</p>';
         }
 
-        async function deleteProduct(id) { 
-            if(confirm('هل أنت متأكد من مسح المنتج؟')) { 
-                await db.from('products').delete().eq('id', id); 
-                loadProducts(); 
-            } 
-        }
-
-        async function loadSettings() { 
-            const { data } = await db.from('settings').select('*').eq('cafe_id', cafeId).single(); 
-            if (data && data.marquee_text) {
-                document.getElementById('marqueeText').value = data.marquee_text; 
-            }
-        }
-
-        async function updateSettings() { 
-            const text = document.getElementById('marqueeText').value; 
-            const btn = document.querySelector('.btn-save'); 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...'; 
-
-            await db.from('settings').upsert({ cafe_id: cafeId, marquee_text: text }, { onConflict: 'cafe_id' }); 
-
-            btn.innerHTML = '<i class="fas fa-save"></i> حفظ الإعلان'; 
-            alert("تم الحفظ بنجاح!"); 
-        }
-
+        async function deleteProduct(id) { if(confirm('هل أنت متأكد من مسح المنتج؟')) { await db.from('products').delete().eq('id', id); loadProducts(); } }
+        async function loadSettings() { const { data } = await db.from('settings').select('*').eq('cafe_id', cafeId).single(); if (data && data.marquee_text) document.getElementById('marqueeText').value = data.marquee_text; }
+        async function updateSettings() { const text = document.getElementById('marqueeText').value; const btn = document.querySelector('.btn-save'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...'; await db.from('settings').upsert({ cafe_id: cafeId, marquee_text: text }, { onConflict: 'cafe_id' }); btn.innerHTML = '<i class="fas fa-save"></i> حفظ الإعلان'; alert("تم الحفظ بنجاح!"); }
+        
+        // دالة التقارير مع نظام الفلترة بالتاريخ
         async function loadReports() {
-            const { data: products } = await db.from('products').select('name, price').eq('cafe_id', cafeId);
-            const priceMap = {}; 
-            if (products) {
-                products.forEach(p => { priceMap[p.name] = parseFloat(p.price) || 0; });
-            }
+            const btn = document.querySelector('.filter-btn');
+            if(btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري البحث...';
 
-            const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'completed');
-            let totalOrders = 0; let totalRev = 0; let itemCounts = {};
+            const dateFrom = document.getElementById('reportDateFrom').value;
+            const dateTo = document.getElementById('reportDateTo').value;
+
+            const { data: products } = await db.from('products').select('name, price').eq('cafe_id', cafeId);
+            const priceMap = {}; if (products) products.forEach(p => { priceMap[p.name] = parseFloat(p.price) || 0; });
             
+            let query = db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'completed');
+            
+            // تطبيق الفلتر لو المستخدم اختار تواريخ
+            if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00.000Z`);
+            if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59.999Z`);
+
+            const { data: orders } = await query;
+            
+            let totalOrders = 0; let totalRev = 0; let itemCounts = {};
             if (orders) { 
                 totalOrders = orders.length; 
                 orders.forEach(order => { 
@@ -633,15 +539,17 @@
             const sortedItems = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]); 
             const topItemsList = document.getElementById('topItemsList'); 
             topItemsList.innerHTML = '';
-
+            
             if (sortedItems.length === 0) {
-                topItemsList.innerHTML = '<p style="text-align:center; color:#777;">لا توجد مبيعات</p>';
+                topItemsList.innerHTML = '<p style="text-align:center; color:#777;">لا توجد مبيعات في هذه الفترة</p>';
             } else {
                 sortedItems.forEach(([name, qty], index) => { 
                     let icon = index === 0 ? '<i class="fas fa-trophy" style="color: #f1c40f; margin-left: 8px;"></i>' : '<i class="fas fa-check-circle" style="color: #334155; margin-left: 8px;"></i>'; 
                     topItemsList.innerHTML += `<li class="top-item"><span class="top-item-name">${icon} ${name}</span><span class="top-item-qty">${qty} طلب</span></li>`; 
                 });
             }
+
+            if(btn) btn.innerHTML = '<i class="fas fa-search"></i> بحث وعرض';
         }
 
         checkNewOrdersBackground();
