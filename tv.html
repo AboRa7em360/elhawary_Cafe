@@ -11,52 +11,53 @@
         body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
         .tv-header { background: rgba(0,0,0,0.7); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(245, 158, 11, 0.3); }
-        .tv-header h1 { margin: 0; font-size: 45px; font-weight: 900; color: var(--accent); text-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 1px; }
+        .tv-header h1 { margin: 0; font-size: 45px; font-weight: 900; color: var(--accent); text-shadow: 0 0 15px rgba(245,158,11,0.4); }
         
         .qr-wrapper { display: flex; flex-direction: column; align-items: flex-end; }
         .qr-section { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 15px; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .qr-section img { width: 70px; height: 70px; border-radius: 10px; background: #fff; padding: 4px; }
         .qr-text { font-size: 15px; font-weight: bold; line-height: 1.4; color: #f8fafc; }
 
-        /* شريط الترحيب من اليمين لليسار ومربوط بقاعدة البيانات مع حركات جذابة */
+        /* شريط الترحيب العادي */
         .welcome-ticker-box { width: 100%; background: linear-gradient(90deg, #1e293b, #0f172a, #1e293b); border-bottom: 3px solid var(--accent); padding: 14px 0; overflow: hidden; white-space: nowrap; box-shadow: 0 10px 25px rgba(0,0,0,0.8); position: relative; z-index: 20; }
         .ticker-content { display: inline-block; animation: scrollRightToLeft 28s linear infinite; font-size: 26px; font-weight: 900; color: #fde047; text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
         .ticker-content span { color: #4ade80; margin: 0 15px; }
-        .ticker-content i { color: var(--accent); margin-left: 10px; margin-right: 25px; animation: pulseIcon 1.5s infinite; }
+        .ticker-content i { color: var(--accent); margin-left: 10px; margin-right: 25px; }
 
         @keyframes scrollRightToLeft {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100vw); }
         }
 
-        @keyframes pulseIcon {
+        /* بوكس الإعلان الترويجي الخارجي للأدمن (لو مفعل) */
+        .admin-promo-banner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.96); backdrop-filter: blur(15px); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 40px; box-sizing: border-box; }
+        .promo-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 4px solid var(--accent); border-radius: 30px; display: flex; width: 85%; max-width: 1100px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.9); animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .promo-img { flex: 1; max-height: 500px; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .promo-img img { width: 100%; height: 100%; object-fit: cover; }
+        .promo-info { flex: 1.2; padding: 50px; display: flex; flex-direction: column; justify-content: center; text-align: right; }
+        .promo-badge { background: #e74c3c; color: #fff; font-size: 16px; font-weight: bold; padding: 6px 15px; border-radius: 20px; display: inline-block; margin-bottom: 15px; width: fit-content; box-shadow: 0 4px 15px rgba(231,76,60,0.4); animation: pulseBadge 1.5s infinite; }
+        .promo-title { font-size: 55px; font-weight: 900; color: #f8fafc; margin-bottom: 15px; line-height: 1.2; }
+        .promo-desc { font-size: 30px; color: #94a3b8; margin-bottom: 25px; line-height: 1.4; }
+        .promo-phone { font-size: 35px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.1); padding: 12px 25px; border-radius: 15px; border: 1px solid rgba(74, 222, 128, 0.3); display: inline-flex; align-items: center; gap: 15px; width: fit-content; direction: ltr; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulseBadge {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.08); }
         }
 
         .slider-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #09090b 100%); overflow: hidden; }
-        
-        /* حركات بصرية وشقلبة احترافية للمنتجات */
         .slide { position: absolute; width: 85%; height: 75%; display: flex; align-items: center; opacity: 0; transform: scale(0.8) rotate(-3deg); transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .slide.active { opacity: 1; transform: scale(1) rotate(0deg); z-index: 10; }
-        
         .slide-img-box { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; }
-        .slide-img-box img { max-width: 85%; max-height: 85%; border-radius: 35px; box-shadow: 0 30px 70px rgba(0,0,0,0.9); object-fit: cover; border: 4px solid rgba(245, 158, 11, 0.3); animation: bounceZoom 5s ease-in-out infinite; }
-        
-        @keyframes bounceZoom {
-            0%, 100% { transform: scale(1) translateY(0); }
-            50% { transform: scale(1.04) translateY(-12px); }
-        }
-
+        .slide-img-box img { max-width: 85%; max-height: 85%; border-radius: 35px; box-shadow: 0 30px 70px rgba(0,0,0,0.9); object-fit: cover; border: 4px solid rgba(245, 158, 11, 0.3); }
         .slide-info { flex: 1; padding: 40px; text-align: right; }
-        .slide-title { font-size: 80px; font-weight: 900; margin-bottom: 25px; line-height: 1.1; color: #f8fafc; text-shadow: 0 5px 20px rgba(0,0,0,0.8); animation: fadeInRight 1s ease; }
-        .slide-price { font-size: 60px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.12); display: inline-block; padding: 15px 50px; border-radius: 25px; border: 2px solid rgba(74, 222, 128, 0.4); box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .slide-title { font-size: 80px; font-weight: 900; margin-bottom: 25px; line-height: 1.1; color: #f8fafc; }
+        .slide-price { font-size: 60px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.12); display: inline-block; padding: 15px 50px; border-radius: 25px; border: 2px solid rgba(74, 222, 128, 0.4); }
         .old-price-tv { text-decoration: line-through; color: #94a3b8; font-size: 45px; margin-left: 20px; }
-
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
     </style>
 </head>
 <body>
@@ -71,10 +72,22 @@
         </div>
     </div>
 
-    <!-- شريط الترحيب المتحرك من اليمين لليسار ومربوط بقاعدة البيانات -->
     <div class="welcome-ticker-box">
         <div class="ticker-content" id="tickerText">
-            <i class="fas fa-mug-hot"></i> جاري تحميل العروض الإعلانية...
+            <i class="fas fa-mug-hot"></i> جاري التحميل...
+        </div>
+    </div>
+
+    <!-- بوكس الإعلان الخارجي للأدمن (يظهر أوتوماتيك لو مفعل من الأدمن) -->
+    <div id="adminPromoBox" class="admin-promo-banner" style="display: none;">
+        <div class="promo-card">
+            <div class="promo-img" id="promoImgBox"></div>
+            <div class="promo-info">
+                <div class="promo-badge"><i class="fas ad-badge-icon fa-star"></i> إعلان مميز وخارجي</div>
+                <div class="promo-title" id="promoTitle">عنوان الإعلان</div>
+                <div class="promo-desc" id="promoDesc">تفاصيل العرض هنا</div>
+                <div class="promo-phone"><i class="fas fa-phone-alt"></i> <span id="promoPhone" dir="ltr">01000000000</span></div>
+            </div>
         </div>
     </div>
 
@@ -128,17 +141,35 @@
             const currentLink = window.location.href.replace('tv.html', 'index.html');
             document.getElementById('qrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentLink)}`;
 
-            // سحب النص حصرياً من جدول settings المربوط بقاعدة البيانات (ما يكتبه صاحب الكافيه)
-            const { data: settings } = await db.from('settings').select('marquee_text').eq('cafe_id', cafeId).single();
-            let announcement = (settings && settings.marquee_text) ? settings.marquee_text : `أهلاً بكم في ${cafeName} - استمتعوا بأجمل المشروبات والخدمات المميزة`;
+            // جلب الإعدادات والإعلان الخارجي للأدمن
+            const { data: settings } = await db.from('settings').select('*').eq('cafe_id', cafeId).single();
             
+            const promoBox = document.getElementById('adminPromoBox');
+            if (settings && settings.is_ads_active) {
+                // عرض إعلان الأدمن المميز وإخفاء شاشة الكافيه الطبيعية مؤقتاً
+                promoBox.style.display = 'flex';
+                document.getElementById('promoTitle').innerText = settings.ad_title || 'إعلان ترويجي';
+                document.getElementById('promoDesc').innerText = settings.ad_desc || '';
+                document.getElementById('promoPhone').innerText = settings.ad_phone || '';
+                
+                const imgBox = document.getElementById('promoImgBox');
+                if (settings.ad_image) {
+                    imgBox.innerHTML = `<img src="${settings.ad_image}" alt="Ad Image">`;
+                } else {
+                    imgBox.innerHTML = `<i class="fas fa-bullhorn" style="font-size: 100px; color: var(--accent);"></i>`;
+                }
+            } else {
+                // إيقاف إعلان الأدمن وإظهار محتوى الكافيه الطبيعي
+                promoBox.style.display = 'none';
+            }
+
+            let announcement = (settings && settings.marquee_text) ? settings.marquee_text : `أهلاً بكم في ${cafeName} - استمتعوا بأجمل المشروبات والخدمات`;
             document.getElementById('tickerText').innerHTML = `
                 <i class="fas fa-fire"></i> <span>${announcement}</span> 
                 <i class="fas fa-coffee"></i> <span>امسح الباركود واطلب من طاولتك فوراً!</span> 
                 <i class="fas fa-star"></i> <span>${announcement}</span>
             `;
 
-            // جلب منتجات الكافيه المصورة
             const { data: products } = await db.from('products').select('*').eq('cafe_id', cafeId).neq('image_url', '');
             const slider = document.getElementById('slider');
             
@@ -181,7 +212,7 @@
         }
 
         fetchTvData();
-        setInterval(fetchTvData, 60000);
+        setInterval(fetchTvData, 10000); // تحديث كل 10 ثوانٍ ليتفاعل مع تحكم الأدمن فوري
     </script>
 </body>
 </html>

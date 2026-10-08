@@ -29,11 +29,11 @@
         .btn-add { background: #2ecc71; min-width: 150px; }
         .btn-clean { background: #e74c3c; width: 100%; font-size: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2); }
         
-        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .cafe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
         .cafe-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
         .cafe-header { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: bold; color: var(--accent); }
         .cafe-details { color: #94a3b8; font-size: 14px; }
-        .cafe-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .cafe-actions { display: flex; gap: 10px; margin-top: 5px; }
         
         .btn-suspend { background: #e74c3c; flex: 1; }
         .btn-activate { background: #3498db; flex: 1; }
@@ -41,8 +41,12 @@
 
         .link-box { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; margin-top: 5px; border: 1px dashed rgba(245, 158, 11, 0.4); }
         .link-input { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 11px; direction: ltr; text-align: left; }
-        .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
-        .btn-qr { background: #8e44ad; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
+        .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 12px;}
+        .btn-qr { background: #8e44ad; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 12px;}
+
+        /* قسم إعلانات الأدمن المميزة */
+        .admin-ad-section { background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px; border-radius: 10px; margin-top: 8px; }
+        .admin-ad-section h4 { margin: 0 0 8px 0; color: #f59e0b; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; }
         .modal-box { background: #1e293b; padding: 30px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
@@ -76,7 +80,7 @@
     </div>
 
     <div class="card" style="border-right: 5px solid #f39c12;">
-        <h3><i class="fas fa-store" style="color: #f39c12;"></i> الكافيهات المشتركة</h3>
+        <h3><i class="fas fa-store" style="color: #f39c12;"></i> الكافيهات المشتركة وإدارة الإعلانات الترويجية</h3>
         <div class="cafe-grid" id="cafesList">
             <p style="text-align: center; color: #777;">جاري التحميل...</p>
         </div>
@@ -99,20 +103,27 @@
         };
 
         async function loadCafes() {
-            const { data } = await db.from('cafes').select('*').order('id', { ascending: false });
+            const { data: cafes } = await db.from('cafes').select('*').order('id', { ascending: false });
+            const { data: settingsList } = await db.from('settings').select('*');
+            
+            const settingsMap = {};
+            if(settingsList) {
+                settingsList.forEach(s => { settingsMap[s.cafe_id] = s; });
+            }
+
             const list = document.getElementById('cafesList');
             list.innerHTML = '';
             
             let currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
 
-            if(data && data.length > 0) {
-                data.forEach(c => {
+            if(cafes && cafes.length > 0) {
+                cafes.forEach(c => {
+                    const st = settingsMap[c.id] || {};
                     const statusText = c.is_active ? '<span style="color:#2ecc71;"><i class="fas fa-check-circle"></i> نشط</span>' : '<span style="color:#e74c3c;"><i class="fas fa-times-circle"></i> موقوف</span>';
                     const toggleBtn = c.is_active 
                         ? `<button class="btn btn-suspend" onclick="toggleStatus(${c.id}, false)"><i class="fas fa-ban"></i> إيقاف</button>`
                         : `<button class="btn btn-activate" onclick="toggleStatus(${c.id}, true)"><i class="fas fa-play"></i> تفعيل</button>`;
                     
-                    // الروابط المحدثة بالـ Token الفريد لكل كافيه
                     const token = c.public_token || c.id;
                     const customerLink = `${currentPath}/index.html?cafe=${token}`;
                     const tvLink = `${currentPath}/tv.html?cafe=${token}`;
@@ -125,28 +136,45 @@
                             </div>
                             <div class="cafe-details">
                                 <div><i class="fas fa-user"></i> اليوزر: <b>${c.owner_username}</b></div>
-                                <div><i class="fas fa-lock"></i> الباسورد: <b>${c.owner_password}</b></div>
                                 <div><i class="fas fa-calendar-alt"></i> انتهاء الاشتراك: <b dir="ltr">${c.subscription_end || 'غير محدد'}</b></div>
                             </div>
                             
-                            <div class="link-box">
-                                <div style="color: var(--accent); font-size: 12px; margin-bottom: 5px; font-weight: bold;">
-                                    <i class="fas fa-link"></i> رابط المنيو (الباركود):
-                                </div>
-                                <div style="display: flex; gap: 5px;">
-                                    <input type="text" class="link-input" value="${customerLink}" readonly>
-                                    <button class="btn-copy" onclick="copyLink('${customerLink}')"><i class="fas fa-copy"></i> نسخ</button>
-                                    <button class="btn-qr" onclick="showQrModal('${c.name}', '${customerLink}')"><i class="fas fa-qrcode"></i> QR</button>
+                            <!-- قسم إعلانات الأدمن الخارجي -->
+                            <div class="admin-ad-section">
+                                <h4><i class="fas fa-bullhorn"></i> الإعلان الترويجي الخارجي (تحكم الأدمن)</h4>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <input type="text" id="ad-title-${c.id}" class="input-field" placeholder="عنوان الإعلان (مثال: مطعم البرنس)" value="${st.ad_title || ''}" style="padding:8px; font-size:13px;">
+                                    <input type="text" id="ad-desc-${c.id}" class="input-field" placeholder="تفاصيل العرض (مثال: ساندوتش شيش بـ 45ج)" value="${st.ad_desc || ''}" style="padding:8px; font-size:13px;">
+                                    <input type="text" id="ad-phone-${c.id}" class="input-field" placeholder="رقم للتواصل" value="${st.ad_phone || ''}" style="padding:8px; font-size:13px;">
+                                    
+                                    <!-- رفع صورة متحركة أو ثابتة للإعلان -->
+                                    <input type="file" id="ad-img-file-${c.id}" accept="image/*" style="display:none;" onchange="previewAdImage(event, ${c.id})">
+                                    <label for="ad-img-file-${c.id}" class="input-field" style="cursor:pointer; text-align:center; padding:8px; font-size:12px; background:rgba(255,255,255,0.05);">
+                                        <i class="fas fa-image"></i> <span id="ad-img-name-${c.id}">${st.ad_image ? 'تم اختيار صورة الإعلان' : 'اختر صورة متحركة/ثابتة للإعلان'}</span>
+                                    </label>
+                                    <input type="hidden" id="ad-img-base-${c.id}" value="${st.ad_image || ''}">
+
+                                    <div style="display:flex; gap:8px; margin-top:5px;">
+                                        <button class="btn" style="background:#2ecc71; padding:8px; font-size:13px; flex:1;" onclick="saveAdminAd(${c.id}, true)"><i class="fas fa-play-circle"></i> تشغيل الإعلان</button>
+                                        <button class="btn" style="background:#e74c3c; padding:8px; font-size:13px; flex:1;" onclick="saveAdminAd(${c.id}, false)"><i class="fas fa-stop-circle"></i> إيقاف وإرجاع إعلان الكافيه</button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="link-box" style="margin-top: 5px; border-color: #3498db;">
-                                <div style="color: #3498db; font-size: 12px; margin-bottom: 5px; font-weight: bold;">
-                                    <i class="fas fa-tv"></i> رابط شاشة العرض (TV):
+                            <div class="link-box">
+                                <div style="color: var(--accent); font-size: 11px; margin-bottom: 3px; font-weight: bold;">رابط المنيو:</div>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="text" class="link-input" value="${customerLink}" readonly>
+                                    <button class="btn-copy" onclick="copyLink('${customerLink}')">نسخ</button>
+                                    <button class="btn-qr" onclick="showQrModal('${c.name}', '${customerLink}')">QR</button>
                                 </div>
+                            </div>
+
+                            <div class="link-box" style="margin-top: 3px; border-color: #3498db;">
+                                <div style="color: #3498db; font-size: 11px; margin-bottom: 3px; font-weight: bold;">رابط شاشة العرض (TV):</div>
                                 <div style="display: flex; gap: 5px;">
                                     <input type="text" class="link-input" value="${tvLink}" readonly>
-                                    <button class="btn-copy" style="background: #3498db;" onclick="copyLink('${tvLink}')"><i class="fas fa-copy"></i> نسخ</button>
+                                    <button class="btn-copy" style="background: #3498db;" onclick="copyLink('${tvLink}')">نسخ</button>
                                 </div>
                             </div>
 
@@ -158,14 +186,53 @@
                     `;
                 });
             } else {
-                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد كافيهات مشتركة حتى الآن</p>';
+                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد كافيهات</p>';
+            }
+        }
+
+        // معاينة صورة الإعلان الخارجي
+        function previewAdImage(event, cafeId) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById(`ad-img-name-${cafeId}`).innerText = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(`ad-img-base-${cafeId}`).value = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // حفظ وتشغيل/إيقاف الإعلان الترويجي الخارجي
+        async function saveAdminAd(cafeId, isActive) {
+            const title = document.getElementById(`ad-title-${cafeId}`).value;
+            const desc = document.getElementById(`ad-desc-${cafeId}`).value;
+            const phone = document.getElementById(`ad-phone-${cafeId}`).value;
+            const image = document.getElementById(`ad-img-base-${cafeId}`).value;
+
+            const { error } = await db.from('settings').upsert({
+                cafe_id: cafeId,
+                is_ads_active: isActive,
+                ad_title: title,
+                ad_desc: desc,
+                ad_phone: phone,
+                ad_image: image
+            }, { onConflict: 'cafe_id' });
+
+            if (error) {
+                alert("حدث خطأ أثناء حفظ الإعلان.");
+            } else {
+                if(isActive) {
+                    alert("🚀 تم تشغيل الإعلان الترويجي بنجاح! سيظهر على شاشة الكافيه فوراً.");
+                } else {
+                    alert("⏹️ تم إيقاف الإعلان الترويجي، وعاد إعلان الكافيه الأصلي للعمل.");
+                }
+                loadCafes();
             }
         }
 
         function copyLink(link) {
-            navigator.clipboard.writeText(link).then(() => {
-                alert('تم نسخ الرابط بنجاح!');
-            });
+            navigator.clipboard.writeText(link).then(() => { alert('تم نسخ الرابط بنجاح!'); });
         }
 
         function showQrModal(cafeName, link) {
@@ -174,39 +241,20 @@
             document.getElementById('qrModal').style.display = 'flex';
         }
 
-        function closeQrModal() {
-            document.getElementById('qrModal').style.display = 'none';
-        }
+        function closeQrModal() { document.getElementById('qrModal').style.display = 'none'; }
 
         async function addCafe() {
             const name = document.getElementById('newName').value;
             const user = document.getElementById('newUser').value;
             const pass = document.getElementById('newPass').value;
             const endDate = document.getElementById('newDate').value;
-            
             if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات!');
             
-            // توليد Token عشوائي فريد لكل كافيه جديد
             const randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-            const { error } = await db.from('cafes').insert([{ 
-                name: name, 
-                owner_username: user, 
-                owner_password: pass, 
-                is_active: true, 
-                subscription_end: endDate,
-                public_token: randomToken 
-            }]);
+            const { error } = await db.from('cafes').insert([{ name: name, owner_username: user, owner_password: pass, is_active: true, subscription_end: endDate, public_token: randomToken }]);
             
-            if(error) {
-                alert('حدث خطأ، ربما اسم المستخدم موجود مسبقاً.');
-            } else {
-                alert('✅ تم إنشاء الكافيه بنجاح!');
-                document.getElementById('newName').value = ''; 
-                document.getElementById('newUser').value = ''; 
-                document.getElementById('newPass').value = '';
-                loadCafes();
-            }
+            if(error) alert('خطأ، ربما اسم المستخدم موجود مسبقاً.');
+            else { alert('✅ تم إنشاء الكافيه بنجاح!'); loadCafes(); }
         }
 
         async function toggleStatus(id, isActive) {
@@ -215,9 +263,9 @@
 
         async function addMonth(id, currentEndDate) {
             let d = currentEndDate ? new Date(currentEndDate) : new Date();
-            d.setDate(d.getDate() + 30); const newDate = d.toISOString().split('T')[0];
-            await db.from('cafes').update({ subscription_end: newDate }).eq('id', id);
-            alert(`تم التمديد حتى: ${newDate}`); loadCafes();
+            d.setDate(d.getDate() + 30); 
+            await db.from('cafes').update({ subscription_end: d.toISOString().split('T')[0] }).eq('id', id);
+            loadCafes();
         }
 
         loadCafes();
