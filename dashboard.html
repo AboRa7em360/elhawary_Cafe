@@ -59,7 +59,11 @@
         .copy-coord-btn { background: #334155; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
         .copy-coord-btn:active { background: #2ecc71; }
 
-        .btn-done { background: #3498db; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        /* أزرار القبول والرفض المرتبة للأوردر */
+        .order-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-accept { background: #2ecc71; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .btn-reject { background: #e74c3c; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .btn-accept:active, .btn-reject:active { transform: scale(0.96); }
         
         .empty-orders { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; }
         .radar-box { position: relative; width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; color: var(--accent); font-size: 30px; }
@@ -139,7 +143,7 @@
         <div class="card">
             <h3><i class="fas fa-list"></i> المنيو الحالي</h3>
             <ul class="product-list" id="productsList">
-                <p style="text-align: center; color: #777;">جاري التحميل...</p>
+                <p style="text-align: center; color: #777;">المنيو فاضي حالياً</p>
             </ul>
         </div>
     </div>
@@ -198,7 +202,6 @@
             } catch (err) {}
         }
 
-        // تحديث حالة زر الصوت عند التحميل بناءً على الـ localStorage
         function updateSoundButtonUI() {
             const btn = document.getElementById('soundBtn');
             if (soundEnabled) {
@@ -233,7 +236,6 @@
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
         }
 
-        // استرجاع التبويب النشط بعد التحديث (Refresh)
         const savedTab = localStorage.getItem('active_tab') || 'bar';
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -260,7 +262,6 @@
             });
         }
 
-        // مراقبة الطلبات في الخلفية (تعمل في كل التبويبات بلا استثناء)
         async function checkNewOrdersBackground() {
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
             
@@ -272,7 +273,6 @@
                 lastOrderId = latestOrder.id;
             }
 
-            // لو الكاشير واقف في صفحة البار، حدث الكروت
             if (document.getElementById('bar').classList.contains('active')) {
                 renderOrdersUI(orders);
             }
@@ -311,13 +311,19 @@
                         <ul class="item-list">${itemsHtml}</ul>${notesHtml}
                         ${deviceTag}
                         ${locationBox}
-                        <button class="btn-done" onclick="finishOrder(${order.id})"><i class="fas fa-check"></i> تم التنفيذ</button>
+                        <div class="order-actions">
+                            <button class="btn-accept" onclick="acceptOrder(${order.id})"><i class="fas fa-check"></i> قبول وتنفيذ</button>
+                            <button class="btn-reject" onclick="rejectOrder(${order.id})"><i class="fas fa-times"></i> رفض الطلب</button>
+                        </div>
                     </div>`;
             });
             container.innerHTML = newHtml;
         }
 
-        async function finishOrder(id) {
+        // دالة قبول الطلب مع رسالة تأكيد
+        async function acceptOrder(id) {
+            if(!confirm("هل أنت متأكد من قبول وتنفيذ هذا الطلب؟")) return;
+            
             const card = document.getElementById(`order-${id}`);
             if(card) {
                 card.style.transform = 'scale(0.8)';
@@ -325,6 +331,19 @@
                 setTimeout(() => card.remove(), 250);
             }
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
+        }
+
+        // دالة رفض الطلب مع رسالة تأكيد وحذفه
+        async function rejectOrder(id) {
+            if(!confirm("هل أنت متأكد من رفض وحذف هذا الطلب نهائياً؟")) return;
+            
+            const card = document.getElementById(`order-${id}`);
+            if(card) {
+                card.style.transform = 'scale(0.8)';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 250);
+            }
+            await db.from('orders').delete().eq('id', id);
         }
 
         async function loadHistoryOrders() {
@@ -526,7 +545,6 @@
             }
         }
 
-        // تشغيل مراقبة الطلبات في الخلفية بانتظام
         checkNewOrdersBackground();
         setInterval(checkNewOrdersBackground, 3000); 
         loadProducts();

@@ -97,21 +97,44 @@
         let realCafeId = null;
         let cart = {}; 
 
-        // استخراج تفاصيل الهاتف بدقة متناهية
+        // حل جذري لاستخراج اسم الجهاز بدقة أو من خلال الذاكرة المحلية
         function getDetailedDevice() {
+            let storedDevice = localStorage.getItem('user_device_model');
+            if (storedDevice) return storedDevice;
+
             const ua = navigator.userAgent;
-            let device = "موبايل ذكي";
+            let device = "";
+            
             if (/android/i.test(ua)) {
-                let match = ua.match(/\b(SM-[A-Za-z0-9]+|Redmi|POCO|Pixel|Moto|Infinix|TECNO|Realme|OPPO|Vivo|HUAWEI|Honor)\b/i);
-                if (match) device = match[0];
-                else device = "هاتف أندرويد";
+                let match = ua.match(/\b(SM-[A-Za-z0-9]+|Redmi|POCO|Pixel|Moto|Infinix|TECNO|Realme|OPPO|Vivo|HUAWEI|Honor|Samsung|Xiaomi|Infinix)\b/i);
+                if (match) {
+                    device = match[0];
+                } else {
+                    let matchBuild = ua.match(/;\s*([A-Za-z0-9\s\-]+)\s+Build\//);
+                    if (matchBuild && matchBuild[1]) device = matchBuild[1].trim();
+                    else device = "هاتف Android ذكي";
+                }
             } else if (/iphone/i.test(ua)) {
-                device = "آيفون (iPhone)";
+                device = "iPhone (Apple)";
             } else if (/ipad/i.test(ua)) {
-                device = "آي باد (iPad)";
+                device = "iPad (Apple)";
             } else if (/windows/i.test(ua)) {
-                device = "كمبيوتر ويندوز";
+                device = "كمبيوتر Windows";
+            } else {
+                device = "هاتف محمول";
             }
+
+            // لو الجهاز مش واضح تماماً، اطلب من المستخدم تسجيله مرة واحدة بطلب لطيف
+            if(device === "هاتف Android ذكي" || device === "هاتف محمول") {
+                let userDevice = prompt("من فضلك اكتب نوع هاتفك (مثال: سامسونج، ريلمي، آيفون) لتسهيل الخدمة من البار:", "هاتف محمول");
+                if(userDevice) {
+                    device = userDevice.trim();
+                    localStorage.setItem('user_device_model', device);
+                }
+            } else {
+                localStorage.setItem('user_device_model', device);
+            }
+
             return device;
         }
 
@@ -195,24 +218,21 @@
             document.getElementById(`qty-${id}`).innerText = newQty;
         }
 
-        // دالة سحب الإحداثيات بالملي
         function getExactLocation() {
             return new Promise((resolve) => {
                 if (!navigator.geolocation) {
-                    resolve("الموقع غير مدعوم من المتصفح");
+                    resolve("الموقع غير مدعوم");
                     return;
                 }
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        let lat = position.coords.latitude.toFixed(6); // خط العرض بدقة عالية
-                        let lng = position.coords.longitude.toFixed(6); // خط الطول بدقة عالية
-                        let accuracy = position.coords.accuracy.toFixed(1); // نسبة الدقة بالأمتار
+                        let lat = position.coords.latitude.toFixed(6);
+                        let lng = position.coords.longitude.toFixed(6);
+                        let accuracy = position.coords.accuracy.toFixed(1);
                         resolve(`${lat}, ${lng} (دقة: ${accuracy}م)`);
                     },
-                    (error) => {
-                        resolve("لم يتم السماح بالوصول للموقع");
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    (error) => { resolve("الموقع غير متاح"); },
+                    { enableHighAccuracy: true, timeout: 4000, maximumAge: 0 }
                 );
             });
         }
@@ -231,10 +251,9 @@
             if(totalItems === 0) { alert("اختر مشروباتك الأول!"); return; }
 
             const btn = document.querySelector('.submit-btn');
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري تحديد الموقع والإرسال...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري إرسال الطلب...';
             btn.disabled = true;
 
-            // سحب الإحداثيات واسم الجهاز
             let coords = await getExactLocation();
             let deviceName = getDetailedDevice();
 
