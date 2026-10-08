@@ -18,7 +18,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; background: rgba(30,41,59,0.8); padding: 15px 20px; border-radius: 0 0 15px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
         .header h2 { margin: 0; color: var(--accent); }
         .logout-btn { background: transparent; color: #e74c3c; border: none; font-size: 20px; cursor: pointer; }
-        .btn-sound { background: #2ecc71; color: #fff; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
+        .btn-sound { background: #2ecc71; color: #fff; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); transition: 0.2s; }
 
         .tab-content { display: none; padding: 15px; }
         .tab-content.active { display: block; }
@@ -88,14 +88,13 @@
     <div class="header">
         <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
         <h2><i class="fas fa-coffee"></i> <span id="cafeTitle">كافيه</span></h2>
-        <button class="btn-sound" onclick="enableSound()" id="soundBtn"><i class="fas fa-volume-mute"></i> تفعيل الصوت</button>
+        <button class="btn-sound" onclick="toggleSound()" id="soundBtn"><i class="fas fa-volume-mute"></i> تفعيل الصوت</button>
     </div>
 
     <div id="bar" class="tab-content">
         <div id="ordersContainer"></div>
     </div>
 
-    <!-- قسم الطلبات السابقة (تم تحديثه لعرض الطاولة واسم التليفون والإحداثيات) -->
     <div id="history" class="tab-content">
         <div class="card">
             <h3><i class="fas fa-history" style="color: #3498db;"></i> سجل الطلبات السابقة (تُحذف أوتوماتيكياً كل 24 ساعة)</h3>
@@ -199,27 +198,31 @@
             } catch (err) {}
         }
 
-        if(soundEnabled) {
+        // تحديث حالة زر الصوت عند التحميل بناءً على الـ localStorage
+        function updateSoundButtonUI() {
             const btn = document.getElementById('soundBtn');
-            btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
-            btn.style.background = '#3498db';
-            requestWakeLock();
+            if (soundEnabled) {
+                btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
+                btn.style.background = '#3498db';
+                requestWakeLock();
+            } else {
+                btn.innerHTML = '<i class="fas fa-volume-mute"></i> تفعيل الصوت';
+                btn.style.background = '#2ecc71';
+            }
         }
+        updateSoundButtonUI();
 
-        const savedTab = localStorage.getItem('active_tab') || 'bar';
-        document.getElementById(savedTab).classList.add('active');
-        document.getElementById('nav-' + savedTab).classList.add('active');
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('sound_enabled', soundEnabled ? 'true' : 'false');
+            updateSoundButtonUI();
 
-        function enableSound() {
-            soundEnabled = true;
-            localStorage.setItem('sound_enabled', 'true'); 
-            const btn = document.getElementById('soundBtn');
-            btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
-            btn.style.background = '#3498db';
-            requestWakeLock();
-            let msg = new SpeechSynthesisUtterance("تم تفعيل التنبيهات الصوتية");
-            msg.lang = 'ar-SA';
-            window.speechSynthesis.speak(msg);
+            if (soundEnabled) {
+                let msg = new SpeechSynthesisUtterance("تم تفعيل التنبيهات الصوتية");
+                msg.lang = 'ar-SA';
+                window.speechSynthesis.speak(msg);
+                requestWakeLock();
+            }
         }
 
         function playAudioAlert(tableNum) {
@@ -228,6 +231,17 @@
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
+        }
+
+        // استرجاع التبويب النشط بعد التحديث (Refresh)
+        const savedTab = localStorage.getItem('active_tab') || 'bar';
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(document.getElementById(savedTab)) {
+            document.getElementById(savedTab).classList.add('active');
+            document.getElementById('nav-' + savedTab).classList.add('active');
+            if(savedTab === 'reports') loadReports();
+            if(savedTab === 'history') loadHistoryOrders();
         }
 
         function switchTab(tabId, el) {
@@ -246,6 +260,7 @@
             });
         }
 
+        // مراقبة الطلبات في الخلفية (تعمل في كل التبويبات بلا استثناء)
         async function checkNewOrdersBackground() {
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
             
@@ -257,6 +272,7 @@
                 lastOrderId = latestOrder.id;
             }
 
+            // لو الكاشير واقف في صفحة البار، حدث الكروت
             if (document.getElementById('bar').classList.contains('active')) {
                 renderOrdersUI(orders);
             }
@@ -311,7 +327,6 @@
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
-        // جلب الطلبات السابقة مع عرض رقم الطاولة واسم التليفون والإحداثيات
         async function loadHistoryOrders() {
             const container = document.getElementById('historyContainer');
             container.innerHTML = '<p style="text-align: center; color: var(--accent);"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
@@ -511,6 +526,7 @@
             }
         }
 
+        // تشغيل مراقبة الطلبات في الخلفية بانتظام
         checkNewOrdersBackground();
         setInterval(checkNewOrdersBackground, 3000); 
         loadProducts();
