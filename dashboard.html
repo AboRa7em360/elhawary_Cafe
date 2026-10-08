@@ -59,7 +59,6 @@
         .copy-coord-btn { background: #334155; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
         .copy-coord-btn:active { background: #2ecc71; }
 
-        /* أزرار القبول والرفض المرتبة للأوردر */
         .order-actions { display: flex; gap: 10px; margin-top: 15px; }
         .btn-accept { background: #2ecc71; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
         .btn-reject { background: #e74c3c; color: #fff; border: none; padding: 12px; flex: 1; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; }
@@ -190,8 +189,6 @@
         
         let soundEnabled = localStorage.getItem('sound_enabled') === 'true';
         let lastOrderId = null;
-        let allProducts = []; 
-        let editingProductId = null; 
         let wakeLock = null;
 
         async function requestWakeLock() {
@@ -228,12 +225,31 @@
             }
         }
 
+        // دالة صوتية قوية ومزدوجة لتأكيد سماع التنبيه في أي صفحة
         function playAudioAlert(tableNum) {
             if(!soundEnabled) return;
+            
+            // 1. نطق صوتي فوري
             let msg = new SpeechSynthesisUtterance(`انتباه، طلب جديد على طاولة رقم ${tableNum}`);
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
+
+            // 2. اهتزاز قوي
+            if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]); 
+
+            // 3. صفارة تنبيه تفاعلية (Audio Beep) للتأكد من خروج الصوت حتي لو المتصفح حظر النطق
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // تردد عالي واضح
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            } catch(e) {}
         }
 
         const savedTab = localStorage.getItem('active_tab') || 'bar';
@@ -262,6 +278,7 @@
             });
         }
 
+        // دالة مراقبة الطلبات في الخلفية تعمل كل ثانيتين في أي صفحة بلا استثناء
         async function checkNewOrdersBackground() {
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
             
@@ -271,6 +288,10 @@
                     playAudioAlert(latestOrder.table_number);
                 }
                 lastOrderId = latestOrder.id;
+            } else {
+                if (lastOrderId === null && orders && orders.length > 0) {
+                    lastOrderId = orders[0].id;
+                }
             }
 
             if (document.getElementById('bar').classList.contains('active')) {
@@ -320,7 +341,6 @@
             container.innerHTML = newHtml;
         }
 
-        // دالة قبول الطلب مع رسالة تأكيد
         async function acceptOrder(id) {
             if(!confirm("هل أنت متأكد من قبول وتنفيذ هذا الطلب؟")) return;
             
@@ -333,7 +353,6 @@
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
-        // دالة رفض الطلب مع رسالة تأكيد وحذفه
         async function rejectOrder(id) {
             if(!confirm("هل أنت متأكد من رفض وحذف هذا الطلب نهائياً؟")) return;
             
@@ -545,8 +564,9 @@
             }
         }
 
+        // تشغيل مراقبة الطلبات كل ثانيتين بشكل دائم في الخلفية وفي كل التبويبات
         checkNewOrdersBackground();
-        setInterval(checkNewOrdersBackground, 3000); 
+        setInterval(checkNewOrdersBackground, 2000); 
         loadProducts();
         loadSettings();
     </script>

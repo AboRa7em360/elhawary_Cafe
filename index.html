@@ -97,45 +97,48 @@
         let realCafeId = null;
         let cart = {}; 
 
-        // حل جذري لاستخراج اسم الجهاز بدقة أو من خلال الذاكرة المحلية
+        // دالة سحب اسم التليفون أوتوماتيكياً وبدقة تامة من متصفح العميل دون أي إدخال يدوي
         function getDetailedDevice() {
-            let storedDevice = localStorage.getItem('user_device_model');
-            if (storedDevice) return storedDevice;
-
             const ua = navigator.userAgent;
-            let device = "";
-            
-            if (/android/i.test(ua)) {
-                let match = ua.match(/\b(SM-[A-Za-z0-9]+|Redmi|POCO|Pixel|Moto|Infinix|TECNO|Realme|OPPO|Vivo|HUAWEI|Honor|Samsung|Xiaomi|Infinix)\b/i);
-                if (match) {
-                    device = match[0];
-                } else {
-                    let matchBuild = ua.match(/;\s*([A-Za-z0-9\s\-]+)\s+Build\//);
-                    if (matchBuild && matchBuild[1]) device = matchBuild[1].trim();
-                    else device = "هاتف Android ذكي";
-                }
-            } else if (/iphone/i.test(ua)) {
-                device = "iPhone (Apple)";
+            let phoneModel = "جهاز ذكي";
+
+            // فحص ماركات الأندرويد والآيفون بدقة من بصمة المتصفح
+            if (/iphone/i.test(ua)) {
+                let match = ua.match(/iPhone OS ([0-9_]+)/);
+                phoneModel = match ? `iPhone (iOS ${match[1].replace(/_/g, '.')})` : "iPhone (Apple)";
             } else if (/ipad/i.test(ua)) {
-                device = "iPad (Apple)";
-            } else if (/windows/i.test(ua)) {
-                device = "كمبيوتر Windows";
-            } else {
-                device = "هاتف محمول";
-            }
-
-            // لو الجهاز مش واضح تماماً، اطلب من المستخدم تسجيله مرة واحدة بطلب لطيف
-            if(device === "هاتف Android ذكي" || device === "هاتف محمول") {
-                let userDevice = prompt("من فضلك اكتب نوع هاتفك (مثال: سامسونج، ريلمي، آيفون) لتسهيل الخدمة من البار:", "هاتف محمول");
-                if(userDevice) {
-                    device = userDevice.trim();
-                    localStorage.setItem('user_device_model', device);
+                phoneModel = "iPad (Apple)";
+            } else if (/samsung/i.test(ua) || /SM-/i.test(ua)) {
+                let match = ua.match(/(SM-[A-Za-z0-9]+)/);
+                phoneModel = match ? `Samsung ${match[1]}` : "Samsung Galaxy";
+            } else if (/xiaomi|redmi|poco/i.test(ua)) {
+                let match = ua.match(/(Redmi|POCO|Mi)[\s\-]?([A-Za-z0-9\s]+)/i);
+                phoneModel = match ? `Xiaomi ${match[1]} ${match[2]}`.trim() : "Xiaomi Phone";
+            } else if (/realme/i.test(ua)) {
+                phoneModel = "Realme Phone";
+            } else if (/oppo/i.test(ua)) {
+                phoneModel = "Oppo Phone";
+            } else if (/vivo/i.test(ua)) {
+                phoneModel = "Vivo Phone";
+            } else if (/huawei|honor/i.test(ua)) {
+                phoneModel = "Huawei / Honor";
+            } else if (/moto/i.test(ua)) {
+                phoneModel = "Motorola Phone";
+            } else if (/android/i.test(ua)) {
+                let matchBuild = ua.match(/;\s*([A-Za-z0-9\s\-]+)\s+Build\//);
+                if (matchBuild && matchBuild[1]) {
+                    phoneModel = `Android (${matchBuild[1].trim()})`;
+                } else {
+                    let matchOS = ua.match(/Android\s([0-9\.]+)/);
+                    phoneModel = matchOS ? `Android Phone (${matchOS[1]})` : "Android Device";
                 }
-            } else {
-                localStorage.setItem('user_device_model', device);
+            } else if (/windows/i.test(ua)) {
+                phoneModel = "Windows PC";
+            } else if (/macintosh/i.test(ua)) {
+                phoneModel = "Mac Computer";
             }
 
-            return device;
+            return phoneModel;
         }
 
         function showToast(message) {
@@ -255,7 +258,7 @@
             btn.disabled = true;
 
             let coords = await getExactLocation();
-            let deviceName = getDetailedDevice();
+            let deviceName = getDetailedDevice(); // التقاط اسم الموبايل الحقيقي أوتوماتيك
 
             const { error } = await db.from('orders').insert([{ 
                 cafe_id: realCafeId, 
