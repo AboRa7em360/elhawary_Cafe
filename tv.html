@@ -10,42 +10,53 @@
         :root { --bg: #09090b; --accent: #f59e0b; --text: #fff; }
         body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
-        .tv-header { background: rgba(0,0,0,0.6); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(245, 158, 11, 0.3); }
-        .tv-header h1 { margin: 0; font-size: 45px; font-weight: 900; color: var(--accent); text-shadow: 0 2px 10px rgba(245,158,11,0.3); }
+        .tv-header { background: rgba(0,0,0,0.7); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(245, 158, 11, 0.3); }
+        .tv-header h1 { margin: 0; font-size: 45px; font-weight: 900; color: var(--accent); text-shadow: 0 0 15px rgba(245,158,11,0.4); letter-spacing: 1px; }
         
         .qr-wrapper { display: flex; flex-direction: column; align-items: flex-end; }
-        .qr-section { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.08); padding: 10px 20px; border-radius: 15px; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .qr-section img { width: 75px; height: 75px; border-radius: 10px; background: #fff; padding: 4px; }
-        .qr-text { font-size: 16px; font-weight: bold; line-height: 1.4; color: #f8fafc; }
+        .qr-section { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 15px; border: 1px solid rgba(245, 158, 11, 0.3); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .qr-section img { width: 70px; height: 70px; border-radius: 10px; background: #fff; padding: 4px; }
+        .qr-text { font-size: 15px; font-weight: bold; line-height: 1.4; color: #f8fafc; }
 
-        /* شريط الترحيب الجديد تحت الباركود وتحت الخط الفاصل */
-        .welcome-ticker-box { width: 100%; background: linear-gradient(90deg, rgba(245,158,11,0.15), rgba(30,41,59,0.8), rgba(245,158,11,0.15)); border-bottom: 2px solid rgba(245, 158, 11, 0.4); padding: 12px 0; overflow: hidden; white-space: nowrap; box-shadow: inset 0 0 20px rgba(245,158,11,0.1); }
-        .ticker-content { display: inline-block; animation: scrollTicker 25s linear infinite; font-size: 24px; font-weight: 900; color: #fde047; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
-        .ticker-content i { color: var(--accent); margin-left: 10px; margin-right: 20px; }
+        /* شريط الترحيب من اليمين لليسار ومربوط بقاعدة البيانات مع حركات جذابة */
+        .welcome-ticker-box { width: 100%; background: linear-gradient(90deg, #1e293b, #0f172a, #1e293b); border-bottom: 3px solid var(--accent); padding: 14px 0; overflow: hidden; white-space: nowrap; box-shadow: 0 10px 25px rgba(0,0,0,0.8); position: relative; z-index: 20; }
+        .ticker-content { display: inline-block; animation: scrollRightToLeft 28s linear infinite; font-size: 26px; font-weight: 900; color: #fde047; text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
+        .ticker-content span { color: #4ade80; margin: 0 15px; }
+        .ticker-content i { color: var(--accent); margin-left: 10px; margin-right: 25px; animation: pulseIcon 1.5s infinite; }
 
-        @keyframes scrollTicker {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        @keyframes scrollRightToLeft {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100vw); }
         }
 
-        .slider-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #09090b 100%); }
+        @keyframes pulseIcon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .slider-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #1e293b 0%, #09090b 100%); overflow: hidden; }
         
-        /* حركات بصرية مبهرة للسلايدر */
-        .slide { position: absolute; width: 85%; height: 75%; display: flex; align-items: center; opacity: 0; transform: scale(0.9) translateY(20px); transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .slide.active { opacity: 1; transform: scale(1) translateY(0); z-index: 10; }
+        /* حركات بصرية وشقلبة احترافية للمنتجات */
+        .slide { position: absolute; width: 85%; height: 75%; display: flex; align-items: center; opacity: 0; transform: scale(0.8) rotate(-3deg); transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .slide.active { opacity: 1; transform: scale(1) rotate(0deg); z-index: 10; }
         
         .slide-img-box { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; }
-        .slide-img-box img { max-width: 90%; max-height: 90%; border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.9); object-fit: cover; border: 3px solid rgba(255,255,255,0.1); animation: floatImage 4s ease-in-out infinite; }
+        .slide-img-box img { max-width: 85%; max-height: 85%; border-radius: 35px; box-shadow: 0 30px 70px rgba(0,0,0,0.9); object-fit: cover; border: 4px solid rgba(245, 158, 11, 0.3); animation: bounceZoom 5s ease-in-out infinite; }
         
-        @keyframes floatImage {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        @keyframes bounceZoom {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.04) translateY(-12px); }
         }
 
         .slide-info { flex: 1; padding: 40px; text-align: right; }
-        .slide-title { font-size: 75px; font-weight: 900; margin-bottom: 25px; line-height: 1.2; color: #f8fafc; text-shadow: 0 4px 15px rgba(0,0,0,0.6); }
-        .slide-price { font-size: 55px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.1); display: inline-block; padding: 15px 45px; border-radius: 20px; border: 1px solid rgba(74, 222, 128, 0.3); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        .old-price-tv { text-decoration: line-through; color: #94a3b8; font-size: 40px; margin-left: 20px; }
+        .slide-title { font-size: 80px; font-weight: 900; margin-bottom: 25px; line-height: 1.1; color: #f8fafc; text-shadow: 0 5px 20px rgba(0,0,0,0.8); animation: fadeInRight 1s ease; }
+        .slide-price { font-size: 60px; color: #4ade80; font-weight: 900; background: rgba(74, 222, 128, 0.12); display: inline-block; padding: 15px 50px; border-radius: 25px; border: 2px solid rgba(74, 222, 128, 0.4); box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .old-price-tv { text-decoration: line-through; color: #94a3b8; font-size: 45px; margin-left: 20px; }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
@@ -60,10 +71,10 @@
         </div>
     </div>
 
-    <!-- شريط الترحيب تحت الباركود مباشرة -->
+    <!-- شريط الترحيب المتحرك من اليمين لليسار ومربوط بقاعدة البيانات -->
     <div class="welcome-ticker-box">
         <div class="ticker-content" id="tickerText">
-            <i class="fas fa-star"></i> أهلاً بكم في الكافيه - استمتعوا بأجمل المشروبات والعروض المميزة <i class="fas fa-star"></i>
+            <i class="fas fa-mug-hot"></i> جاري تحميل العروض الإعلانية...
         </div>
     </div>
 
@@ -117,15 +128,17 @@
             const currentLink = window.location.href.replace('tv.html', 'index.html');
             document.getElementById('qrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentLink)}`;
 
+            // سحب النص حصرياً من جدول settings المربوط بقاعدة البيانات (ما يكتبه صاحب الكافيه)
             const { data: settings } = await db.from('settings').select('marquee_text').eq('cafe_id', cafeId).single();
-            let announcement = (settings && settings.marquee_text) ? settings.marquee_text : `أهلاً بكم في ${cafeName} - نتمنى لكم وقتاً ممتعاً ومميزاً معنا`;
+            let announcement = (settings && settings.marquee_text) ? settings.marquee_text : `أهلاً بكم في ${cafeName} - استمتعوا بأجمل المشروبات والخدمات المميزة`;
             
             document.getElementById('tickerText').innerHTML = `
-                <i class="fas fa-fire" style="color:#f59e0b;"></i> ${announcement} 
-                <i class="fas fa-mug-hot" style="color:#f59e0b;"></i> أطلب الآن من طاولتك بكل سهولة! 
-                <i class="fas fa-star" style="color:#f59e0b;"></i> ${announcement}
+                <i class="fas fa-fire"></i> <span>${announcement}</span> 
+                <i class="fas fa-coffee"></i> <span>امسح الباركود واطلب من طاولتك فوراً!</span> 
+                <i class="fas fa-star"></i> <span>${announcement}</span>
             `;
 
+            // جلب منتجات الكافيه المصورة
             const { data: products } = await db.from('products').select('*').eq('cafe_id', cafeId).neq('image_url', '');
             const slider = document.getElementById('slider');
             
@@ -141,7 +154,7 @@
                 
                 let priceDisplay = `${p.price} ج.م`;
                 if(p.original_price && p.original_price > p.price) {
-                    priceDisplay = `<span class="old-price-tv">${p.original_price} ج.م</span> <span style="color:#f59e0b;">${p.price} ج.م</span>`;
+                    priceDisplay = `<span class="old-price-tv">${p.original_price} ج.م</span> <span style="color:#4ade80;">${p.price} ج.م</span>`;
                 }
 
                 slide.innerHTML = `
@@ -156,7 +169,7 @@
 
             slides = document.querySelectorAll('.slide');
             if(slides.length > 1) {
-                setInterval(nextSlide, 5000);
+                setInterval(nextSlide, 6000);
             }
         }
 
