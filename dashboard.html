@@ -225,25 +225,19 @@
             }
         }
 
-        // دالة صوتية قوية ومزدوجة لتأكيد سماع التنبيه في أي صفحة
         function playAudioAlert(tableNum) {
             if(!soundEnabled) return;
-            
-            // 1. نطق صوتي فوري
             let msg = new SpeechSynthesisUtterance(`انتباه، طلب جديد على طاولة رقم ${tableNum}`);
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
-
-            // 2. اهتزاز قوي
             if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]); 
 
-            // 3. صفارة تنبيه تفاعلية (Audio Beep) للتأكد من خروج الصوت حتي لو المتصفح حظر النطق
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // تردد عالي واضح
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
@@ -278,7 +272,6 @@
             });
         }
 
-        // دالة مراقبة الطلبات في الخلفية تعمل كل ثانيتين في أي صفحة بلا استثناء
         async function checkNewOrdersBackground() {
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
             
@@ -316,7 +309,7 @@
                 for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let notesHtml = order.notes ? `<div class="notes"><i class="fas fa-exclamation-circle"></i> ملاحظة: ${order.notes}</div>` : '';
                 
-                let deviceTag = `<div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'هاتف محمول'}</div>`;
+                let deviceTag = `<div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'موبايل ذكي'}</div>`;
                 let locationBox = `
                     <div class="info-box">
                         <span class="info-text"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> ${order.location_coords || 'غير متاح'}</span>
@@ -341,27 +334,25 @@
             container.innerHTML = newHtml;
         }
 
+        // قبول الطلب وإخفاؤه فوراً من الشاشة دون أي تأخير
         async function acceptOrder(id) {
             if(!confirm("هل أنت متأكد من قبول وتنفيذ هذا الطلب؟")) return;
             
+            // إخفاء الكارت فوراً وبسرعة البرق من الشاشة
             const card = document.getElementById(`order-${id}`);
-            if(card) {
-                card.style.transform = 'scale(0.8)';
-                card.style.opacity = '0';
-                setTimeout(() => card.remove(), 250);
-            }
+            if(card) card.remove();
+            
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
+        // رفض الطلب وحذفه فوراً وبسرعة البرق من الشاشة
         async function rejectOrder(id) {
             if(!confirm("هل أنت متأكد من رفض وحذف هذا الطلب نهائياً؟")) return;
             
+            // إخفاء الكارت فوراً وبسرعة البرق من الشاشة
             const card = document.getElementById(`order-${id}`);
-            if(card) {
-                card.style.transform = 'scale(0.8)';
-                card.style.opacity = '0';
-                setTimeout(() => card.remove(), 250);
-            }
+            if(card) card.remove();
+            
             await db.from('orders').delete().eq('id', id);
         }
 
@@ -398,7 +389,7 @@
                             <span class="table-badge" style="background:#3498db; color:#fff;"><i class="fas fa-chair"></i> طاولة ${order.table_number}</span>
                         </div>
                         <ul class="item-list">${itemsHtml}</ul>
-                        <div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'هاتف محمول'}</div>
+                        <div style="margin-top:8px; font-size:13px; color:#38bdf8;"><i class="fas fa-mobile-alt"></i> الجهاز: ${order.device_info || 'موبايل ذكي'}</div>
                         ${locationBox}
                     </div>`;
             });
@@ -564,7 +555,6 @@
             }
         }
 
-        // تشغيل مراقبة الطلبات كل ثانيتين بشكل دائم في الخلفية وفي كل التبويبات
         checkNewOrdersBackground();
         setInterval(checkNewOrdersBackground, 2000); 
         loadProducts();
