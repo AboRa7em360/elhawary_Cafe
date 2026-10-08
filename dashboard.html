@@ -241,7 +241,6 @@
             if(tabId === 'history') loadHistoryOrders();
         }
 
-        // دالة نسخ النص بضغطة زر
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('✅ تم نسخ الإحداثيات بنجاح!');
@@ -459,12 +458,24 @@
             if (data && data.marquee_text) document.getElementById('marqueeText').value = data.marquee_text;
         }
 
+        // --- التعديل الذكي لحفظ الإعلان وعدم تكراره ---
         async function updateSettings() {
             const text = document.getElementById('marqueeText').value;
-            const { data: existing } = await db.from('settings').select('id').eq('cafe_id', cafeId).single();
-            if (existing) await db.from('settings').update({ marquee_text: text }).eq('cafe_id, cafeId').eq('cafe_id', cafeId);
-            else await db.from('settings').insert([{ cafe_id: cafeId, marquee_text: text }]);
-            alert("تم حفظ الإعلان بنجاح!");
+            const btn = document.querySelector('.btn-save');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            const { error } = await db.from('settings').upsert(
+                { cafe_id: cafeId, marquee_text: text },
+                { onConflict: 'cafe_id' }
+            );
+
+            btn.innerHTML = '<i class="fas fa-save"></i> حفظ الإعلان';
+
+            if (error) {
+                alert("حدث خطأ أثناء حفظ الإعلان.");
+            } else {
+                alert("✅ تم حفظ الإعلان وتحديثه بنجاح!");
+            }
         }
 
         async function loadReports() {
