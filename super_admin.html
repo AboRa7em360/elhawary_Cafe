@@ -44,7 +44,6 @@
         .btn-copy { background: #3498db; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
         .btn-qr { background: #8e44ad; color: white; border: none; border-radius: 5px; padding: 0 12px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 12px;}
 
-        /* نافذة QR Code المنبثقة */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); z-index: 9999; justify-content: center; align-items: center; }
         .modal-box { background: #1e293b; padding: 30px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .modal-box img { width: 200px; height: 200px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
@@ -52,7 +51,6 @@
 </head>
 <body>
 
-    <!-- نافذة عرض الـ QR -->
     <div id="qrModal" class="modal-overlay" onclick="closeQrModal()">
         <div class="modal-box" onclick="event.stopPropagation()">
             <h3 id="qrCafeName" style="color:var(--accent); margin-top:0;">باركود الكافيه</h3>
@@ -67,12 +65,12 @@
     </div>
 
     <div class="card" style="border-right: 5px solid #2ecc71;">
-        <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إنشاء حساب كافيه جديد (توليد تلقائي بالكامل)</h3>
+        <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إنشاء حساب كافيه جديد</h3>
         <div class="add-form">
-            <input type="text" id="newName" class="input-field" placeholder="اسم الكافيه (مثال: ابن عز)">
-            <input type="text" id="newUser" class="input-field" placeholder="اسم المستخدم (للدخول)">
+            <input type="text" id="newName" class="input-field" placeholder="اسم الكافيه">
+            <input type="text" id="newUser" class="input-field" placeholder="اسم المستخدم">
             <input type="text" id="newPass" class="input-field" placeholder="كلمة المرور">
-            <input type="date" id="newDate" class="input-field" title="تاريخ انتهاء الاشتراك">
+            <input type="date" id="newDate" class="input-field">
             <button class="btn btn-add" onclick="addCafe()"><i class="fas fa-save"></i> حفظ وإنشاء</button>
         </div>
     </div>
@@ -105,7 +103,6 @@
             const list = document.getElementById('cafesList');
             list.innerHTML = '';
             
-            // استخراج مسار الأساس للرابط الصحيح على GitHub Pages
             let currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
 
             if(data && data.length > 0) {
@@ -115,9 +112,10 @@
                         ? `<button class="btn btn-suspend" onclick="toggleStatus(${c.id}, false)"><i class="fas fa-ban"></i> إيقاف</button>`
                         : `<button class="btn btn-activate" onclick="toggleStatus(${c.id}, true)"><i class="fas fa-play"></i> تفعيل</button>`;
                     
-                    // الروابط الجديدة بالـ Public Token الفريد
-                    const customerLink = `${currentPath}/index.html?cafe=${c.public_token}`;
-                    const tvLink = `${currentPath}/tv.html?cafe=${c.public_token}`;
+                    // الروابط المحدثة بالـ Token الفريد لكل كافيه
+                    const token = c.public_token || c.id;
+                    const customerLink = `${currentPath}/index.html?cafe=${token}`;
+                    const tvLink = `${currentPath}/tv.html?cafe=${token}`;
 
                     list.innerHTML += `
                         <div class="cafe-card">
@@ -131,10 +129,9 @@
                                 <div><i class="fas fa-calendar-alt"></i> انتهاء الاشتراك: <b dir="ltr">${c.subscription_end || 'غير محدد'}</b></div>
                             </div>
                             
-                            <!-- رابط المنيو والباركود -->
                             <div class="link-box">
                                 <div style="color: var(--accent); font-size: 12px; margin-bottom: 5px; font-weight: bold;">
-                                    <i class="fas fa-link"></i> رابط المنيو (الخاص بالكافيه):
+                                    <i class="fas fa-link"></i> رابط المنيو (الباركود):
                                 </div>
                                 <div style="display: flex; gap: 5px;">
                                     <input type="text" class="link-input" value="${customerLink}" readonly>
@@ -143,7 +140,6 @@
                                 </div>
                             </div>
 
-                            <!-- رابط شاشة التلفزيون -->
                             <div class="link-box" style="margin-top: 5px; border-color: #3498db;">
                                 <div style="color: #3498db; font-size: 12px; margin-bottom: 5px; font-weight: bold;">
                                     <i class="fas fa-tv"></i> رابط شاشة العرض (TV):
@@ -190,16 +186,22 @@
             
             if(!name || !user || !pass || !endDate) return alert('أكمل جميع البيانات!');
             
-            document.querySelector('.btn-add').innerText = 'جاري الإنشاء...';
+            // توليد Token عشوائي فريد لكل كافيه جديد
+            const randomToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-            const { error } = await db.from('cafes').insert([{ name: name, owner_username: user, owner_password: pass, is_active: true, subscription_end: endDate }]);
-            
-            document.querySelector('.btn-add').innerHTML = '<i class="fas fa-save"></i> حفظ وإنشاء';
+            const { error } = await db.from('cafes').insert([{ 
+                name: name, 
+                owner_username: user, 
+                owner_password: pass, 
+                is_active: true, 
+                subscription_end: endDate,
+                public_token: randomToken 
+            }]);
             
             if(error) {
                 alert('حدث خطأ، ربما اسم المستخدم موجود مسبقاً.');
             } else {
-                alert('✅ تم إنشاء الكافيه وتوليد الـ Token والـ QR أوتوماتيكياً!');
+                alert('✅ تم إنشاء الكافيه بنجاح!');
                 document.getElementById('newName').value = ''; 
                 document.getElementById('newUser').value = ''; 
                 document.getElementById('newPass').value = '';
