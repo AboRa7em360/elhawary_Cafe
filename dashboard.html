@@ -106,7 +106,6 @@
                 <input type="text" id="prodCategory" class="input-field" placeholder="القسم (مثال: مشروبات ساخنة)">
                 <input type="number" id="prodPrice" class="input-field" placeholder="السعر (ج.م)">
                 
-                <!-- خيار حالة المنتج الجديد -->
                 <select id="prodStatus" class="input-field">
                     <option value="available">متوفر حالياً</option>
                     <option value="out_of_stock">غير متوفر (خلصان)</option>
@@ -173,13 +172,36 @@
         
         let soundEnabled = localStorage.getItem('sound_enabled') === 'true';
         let lastOrderId = null;
-        let allProducts = []; // حفظ المنتجات للتعديل
-        let editingProductId = null; // ID المنتج الجاري تعديله
+        let allProducts = []; 
+        let editingProductId = null; 
+        let wakeLock = null; // متغير لمنع الشاشة من الانغلاق
+
+        // دالة منع قفل الشاشة
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock was released');
+                    });
+                }
+            } catch (err) {
+                console.error('Wake Lock error:', err);
+            }
+        }
+
+        // إذا رجع المستخدم للمتصفح، نطلب منع قفل الشاشة مرة أخرى
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible' && soundEnabled) {
+                requestWakeLock();
+            }
+        });
 
         if(soundEnabled) {
             const btn = document.getElementById('soundBtn');
             btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
             btn.style.background = '#3498db';
+            requestWakeLock(); // تشغيل منع قفل الشاشة لو الصوت متفعل من قبل
         }
 
         const savedTab = localStorage.getItem('active_tab') || 'bar';
@@ -192,6 +214,10 @@
             const btn = document.getElementById('soundBtn');
             btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
             btn.style.background = '#3498db';
+            
+            // تفعيل منع قفل الشاشة
+            requestWakeLock();
+
             let msg = new SpeechSynthesisUtterance("تم تفعيل التنبيهات الصوتية");
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
@@ -246,13 +272,12 @@
             container.innerHTML = newHtml;
         }
 
-        // الاستجابة اللحظية: الكارت بيختفي فوراً قبل ما يكلم السيرفر
         async function finishOrder(id) {
             const card = document.getElementById(`order-${id}`);
             if(card) {
                 card.style.transform = 'scale(0.8)';
                 card.style.opacity = '0';
-                setTimeout(() => card.remove(), 250); // يختفي في ربع ثانية
+                setTimeout(() => card.remove(), 250);
             }
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
@@ -268,12 +293,11 @@
             }
         }
 
-        // دالة مدمجة للإضافة والتعديل
         async function saveProduct() {
             const name = document.getElementById('prodName').value;
             const cat = document.getElementById('prodCategory').value;
             const price = document.getElementById('prodPrice').value;
-            const status = document.getElementById('prodStatus').value; // الحالة
+            const status = document.getElementById('prodStatus').value; 
             if(!name || !price) return alert("الاسم والسعر مطلوبين");
             
             const btn = document.getElementById('saveProductBtn');
@@ -281,7 +305,7 @@
             btn.disabled = true;
 
             const productData = { cafe_id: cafeId, name: name, category: cat, price: price, status: status };
-            if(currentBase64) productData.image_url = currentBase64; // تحديث الصورة لو اختار واحدة جديدة
+            if(currentBase64) productData.image_url = currentBase64; 
 
             if(editingProductId) {
                 await db.from('products').update(productData).eq('id', editingProductId);
@@ -291,11 +315,10 @@
                 alert("تم إضافة المنتج بنجاح!");
             }
             
-            cancelEdit(); // تصفير الفورم
+            cancelEdit(); 
             loadProducts();
         }
 
-        // تفعيل وضع التعديل
         function startEdit(id) {
             const p = allProducts.find(x => x.id === id);
             if(!p) return;
@@ -315,7 +338,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // إلغاء التعديل والرجوع للإضافة
         function cancelEdit() {
             editingProductId = null;
             document.getElementById('prodName').value = '';
@@ -338,7 +360,7 @@
             const list = document.getElementById('productsList');
             list.innerHTML = '';
             if(data && data.length > 0) {
-                allProducts = data; // حفظهم في الذاكرة للتعديل
+                allProducts = data; 
                 data.forEach(p => {
                     let imgHtml = p.image_url ? `<img src="${p.image_url}">` : '';
                     let statusBadge = '';
@@ -389,7 +411,6 @@
         }
 
         async function loadReports() {
-            // كود التقارير كما هو من الرد السابق...
             const { data: products } = await db.from('products').select('name, price').eq('cafe_id', cafeId);
             const priceMap = {}; if (products) products.forEach(p => { priceMap[p.name] = parseFloat(p.price) || 0; });
             const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'completed');
@@ -418,7 +439,7 @@
         }
 
         loadOrders();
-        setInterval(loadOrders, 3000); // تسريع التحديث لـ 3 ثواني بدل 5
+        setInterval(loadOrders, 3000); 
         loadProducts();
         loadSettings();
     </script>
