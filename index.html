@@ -97,26 +97,22 @@
         let realCafeId = null;
         let cart = {}; 
 
-        function getClientDeviceModel() {
+        // استخراج تفاصيل الهاتف بدقة متناهية
+        function getDetailedDevice() {
             const ua = navigator.userAgent;
+            let device = "موبايل ذكي";
             if (/android/i.test(ua)) {
-                let match = ua.match(/;\s*([A-Za-z0-9\s\-]+)\s+Build\//);
-                if (match && match[1]) return match[1].trim();
-                let match2 = ua.match(/Android[^;]+;\s*([^)]+)\)/);
-                if (match2 && match2[1]) {
-                    let parts = match2[1].split(';');
-                    let deviceName = parts[parts.length - 1].trim();
-                    if(deviceName.length > 2) return deviceName;
-                }
-                return "موبايل أندرويد";
-            } else if (/iphone|ipad|ipod/i.test(ua)) {
-                return "آيفون (Apple)";
+                let match = ua.match(/\b(SM-[A-Za-z0-9]+|Redmi|POCO|Pixel|Moto|Infinix|TECNO|Realme|OPPO|Vivo|HUAWEI|Honor)\b/i);
+                if (match) device = match[0];
+                else device = "هاتف أندرويد";
+            } else if (/iphone/i.test(ua)) {
+                device = "آيفون (iPhone)";
+            } else if (/ipad/i.test(ua)) {
+                device = "آي باد (iPad)";
             } else if (/windows/i.test(ua)) {
-                return "كمبيوتر (Windows)";
-            } else if (/macintosh|mac os x/i.test(ua)) {
-                return "ماك (Mac)";
+                device = "كمبيوتر ويندوز";
             }
-            return "جهاز محمول";
+            return device;
         }
 
         function showToast(message) {
@@ -127,62 +123,41 @@
 
         async function fetchData() {
             const container = document.getElementById('productsContainer');
-            
             try {
                 let cafeQuery = db.from('cafes').select('id, name, is_active');
-                
-                if (cafeToken) {
-                    cafeQuery = cafeQuery.eq('public_token', cafeToken);
-                } else if (cafeIdParam) {
-                    cafeQuery = cafeQuery.eq('id', cafeIdParam);
-                } else {
-                    // لو مفيش أي كافيه في الرابط، جيب أحدث كافيه نشط أوتوماتيك كحل مؤقت عشان الصفحة تفتح
+                if (cafeToken) cafeQuery = cafeQuery.eq('public_token', cafeToken);
+                else if (cafeIdParam) cafeQuery = cafeQuery.eq('id', cafeIdParam);
+                else {
                     const { data: defaultCafe } = await db.from('cafes').select('id, name, is_active').eq('is_active', true).order('id', { ascending: false }).limit(1).single();
                     if (defaultCafe) {
                         realCafeId = defaultCafe.id;
                         document.getElementById('cafeName').innerText = defaultCafe.name;
                         loadCafeProducts(realCafeId, defaultCafe.name);
                         return;
-                    } else {
-                        container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: #e74c3c; padding-top:40px;">رابط الكافيه غير صالح أو غير مكتمل!</p>';
-                        document.getElementById('cafeName').innerText = "خطأ في الرابط";
-                        return;
                     }
-                }
-
-                const { data: cafeData, error: cafeErr } = await cafeQuery.single();
-                
-                if (cafeErr || !cafeData || !cafeData.is_active) {
-                    container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: #e74c3c; padding-top:40px;">هذا الكافيه غير موجود أو تم إيقاف حسابه.</p>';
-                    document.getElementById('cafeName').innerText = "غير متوفر";
                     return;
                 }
+
+                const { data: cafeData } = await cafeQuery.single();
+                if (!cafeData || !cafeData.is_active) return;
 
                 realCafeId = cafeData.id;
                 document.getElementById('cafeName').innerText = cafeData.name;
                 loadCafeProducts(realCafeId, cafeData.name);
-
-            } catch (err) {
-                container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: #e74c3c;">فشل الاتصال بالنظام.</p>';
-            }
+            } catch (err) {}
         }
 
         async function loadCafeProducts(cafeId, cafeName) {
             const container = document.getElementById('productsContainer');
-            
             const { data: settings } = await db.from('settings').select('marquee_text').eq('cafe_id', cafeId).single();
-            if(settings && settings.marquee_text) {
-                document.getElementById('marqueeText').innerText = settings.marquee_text;
-            } else {
-                document.getElementById('marqueeText').innerText = `أهلاً بكم في ${cafeName} - نتمنى لكم وقتاً ممتعاً`;
-            }
+            if(settings && settings.marquee_text) document.getElementById('marqueeText').innerText = settings.marquee_text;
+            else document.getElementById('marqueeText').innerText = `أهلاً بكم في ${cafeName} - نتمنى لكم وقتاً ممتعاً`;
 
-            const { data: products, error } = await db.from('products').select('*').eq('cafe_id', cafeId).order('category');
-            if (error) throw error;
-
+            const { data: products } = await db.from('products').select('*').eq('cafe_id', cafeId).order('category');
             container.innerHTML = '';
+            
             if(!products || products.length === 0) {
-                container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: var(--text-muted); padding-top:40px;">لا توجد منتجات في المنيو حالياً</p>'; 
+                container.innerHTML = '<p style="grid-column: span 2; text-align: center; color: var(--text-muted); padding-top:40px;">لا توجد منتجات حالياً</p>'; 
                 return;
             }
 
@@ -190,10 +165,7 @@
                 cart[p.id] = { name: p.name, qty: 0 }; 
                 let imageElement = (p.image_url && p.image_url.trim() !== '') ? `<img src="${p.image_url}" class="product-img">` : `<div class="no-img-placeholder"><i class="fas fa-mug-hot"></i></div>`;
                 
-                let statusBadgeHtml = '';
-                let controlsHtml = '';
-                let priceHtml = '';
-
+                let statusBadgeHtml = '', controlsHtml = '', priceHtml = '';
                 if (p.original_price && p.original_price > p.price) {
                     statusBadgeHtml = '<div class="status-badge discount">عرض لفترة محدودة</div>';
                     priceHtml = `<div class="price-box"><span class="old-price">${p.original_price} ج.م</span><span class="product-price">${p.price} ج.م</span></div>`;
@@ -208,23 +180,10 @@
                     statusBadgeHtml = '<div class="status-badge soon">قريباً</div>';
                     controlsHtml = '<div class="disabled-text">قريباً</div>';
                 } else {
-                    controlsHtml = `
-                        <button class="btn" onclick="updateQty(${p.id}, 1)">+</button>
-                        <div class="qty" id="qty-${p.id}">0</div>
-                        <button class="btn" onclick="updateQty(${p.id}, -1)">-</button>
-                    `;
+                    controlsHtml = `<button class="btn" onclick="updateQty(${p.id}, 1)">+</button><div class="qty" id="qty-${p.id}">0</div><button class="btn" onclick="updateQty(${p.id}, -1)">-</button>`;
                 }
                 
-                container.innerHTML += `
-                    <div class="product-card">
-                        ${statusBadgeHtml}
-                        ${imageElement}
-                        <div class="product-info">
-                            <div><div class="product-name">${p.name}</div>${priceHtml}</div>
-                            <div class="controls">${controlsHtml}</div>
-                        </div>
-                    </div>
-                `;
+                container.innerHTML += `<div class="product-card">${statusBadgeHtml}${imageElement}<div class="product-info"><div><div class="product-name">${p.name}</div>${priceHtml}</div><div class="controls">${controlsHtml}</div></div></div>`;
             });
         }
 
@@ -234,6 +193,28 @@
             if (newQty < 0) newQty = 0; 
             cart[id].qty = newQty;
             document.getElementById(`qty-${id}`).innerText = newQty;
+        }
+
+        // دالة سحب الإحداثيات بالملي
+        function getExactLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve("الموقع غير مدعوم من المتصفح");
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        let lat = position.coords.latitude.toFixed(6); // خط العرض بدقة عالية
+                        let lng = position.coords.longitude.toFixed(6); // خط الطول بدقة عالية
+                        let accuracy = position.coords.accuracy.toFixed(1); // نسبة الدقة بالأمتار
+                        resolve(`${lat}, ${lng} (دقة: ${accuracy}م)`);
+                    },
+                    (error) => {
+                        resolve("لم يتم السماح بالوصول للموقع");
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            });
         }
 
         async function submitOrder() {
@@ -250,8 +231,12 @@
             if(totalItems === 0) { alert("اختر مشروباتك الأول!"); return; }
 
             const btn = document.querySelector('.submit-btn');
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الإرسال...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري تحديد الموقع والإرسال...';
             btn.disabled = true;
+
+            // سحب الإحداثيات واسم الجهاز
+            let coords = await getExactLocation();
+            let deviceName = getDetailedDevice();
 
             const { error } = await db.from('orders').insert([{ 
                 cafe_id: realCafeId, 
@@ -259,7 +244,8 @@
                 items: finalItems, 
                 notes: notes,
                 status: 'pending',
-                device_info: getClientDeviceModel()
+                device_info: deviceName,
+                location_coords: coords
             }]);
 
             btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-left: 8px;"></i> تأكيد وإرسال الطلب';
