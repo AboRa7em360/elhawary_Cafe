@@ -190,6 +190,9 @@
         let soundEnabled = localStorage.getItem('sound_enabled') === 'true';
         let lastOrderId = null;
         let wakeLock = null;
+        
+        // سجل بالأوردرات اللي تم الموافقة عليها أو رفضها عشان ما ترجعش تظهر في الـ UI لو الداتا بيز اتأخرت
+        let processingOrders = new Set();
 
         async function requestWakeLock() {
             try {
@@ -305,6 +308,9 @@
 
             let newHtml = '';
             orders.forEach(order => {
+                // تجاهل الطلبات التي تم الموافقة عليها أو رفضها فوراً لتجنب ظهورها مجدداً
+                if (processingOrders.has(order.id)) return;
+
                 let itemsHtml = '';
                 for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let notesHtml = order.notes ? `<div class="notes"><i class="fas fa-exclamation-circle"></i> ملاحظة: ${order.notes}</div>` : '';
@@ -331,28 +337,24 @@
                         </div>
                     </div>`;
             });
-            container.innerHTML = newHtml;
+            container.innerHTML = newHtml || `<div class="empty-orders"><h3>في انتظار الطلبات...</h3></div>`;
         }
 
-        // قبول الطلب وإخفاؤه فوراً من الشاشة دون أي تأخير
+        // إخفاء فوري وبسرعة البرق مع رسائل تأكيد
         async function acceptOrder(id) {
             if(!confirm("هل أنت متأكد من قبول وتنفيذ هذا الطلب؟")) return;
-            
-            // إخفاء الكارت فوراً وبسرعة البرق من الشاشة
+            processingOrders.add(id);
             const card = document.getElementById(`order-${id}`);
-            if(card) card.remove();
-            
+            if(card) card.remove(); // اختفاء فوري من الشاشة
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
         }
 
-        // رفض الطلب وحذفه فوراً وبسرعة البرق من الشاشة
+        // إخفاء فوري وبسرعة البرق مع رسائل تأكيد
         async function rejectOrder(id) {
             if(!confirm("هل أنت متأكد من رفض وحذف هذا الطلب نهائياً؟")) return;
-            
-            // إخفاء الكارت فوراً وبسرعة البرق من الشاشة
+            processingOrders.add(id);
             const card = document.getElementById(`order-${id}`);
-            if(card) card.remove();
-            
+            if(card) card.remove(); // اختفاء فوري من الشاشة
             await db.from('orders').delete().eq('id', id);
         }
 
