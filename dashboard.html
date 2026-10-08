@@ -14,37 +14,63 @@
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #f59e0b; --text: #f8fafc; }
         body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        
         .header { display: flex; justify-content: space-between; align-items: center; background: rgba(30,41,59,0.8); padding: 15px 20px; border-radius: 0 0 15px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
         .header h2 { margin: 0; color: var(--accent); }
         .logout-btn { background: transparent; color: #e74c3c; border: none; font-size: 20px; cursor: pointer; }
         .btn-sound { background: #2ecc71; color: #fff; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
+
         .tab-content { display: none; padding: 15px; }
         .tab-content.active { display: block; }
+        
         .card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .card h3 { margin-top: 0; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        
         .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         .input-field { padding: 12px; border-radius: 10px; border: 1px solid #334155; background: rgba(0,0,0,0.2); color: white; font-size: 15px; }
-        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; }
+        .input-field:focus { outline: none; border-color: var(--accent); background: rgba(0,0,0,0.4); }
+        
+        .btn { padding: 12px; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; transition: 0.2s;}
         .btn-add { background: #2ecc71; color: white; }
-        .btn-delete { background: #e74c3c; color: white; padding: 5px 10px; width: auto; font-size: 14px; }
+        .btn-edit-mode { background: #3498db; color: white; }
+        .btn-delete { background: rgba(231, 76, 60, 0.2); color: #e74c3c; padding: 8px; border-radius: 8px; width: auto; font-size: 14px; }
+        .btn-edit-item { background: rgba(52, 152, 219, 0.2); color: #3498db; padding: 8px; border-radius: 8px; width: auto; font-size: 14px; margin-left: 5px; }
         .btn-save { background: #d97706; color: white; }
+        
         .product-list { list-style: none; padding: 0; margin: 0; }
         .product-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .product-item img { width: 40px; height: 40px; border-radius: 8px; margin-left: 10px; object-fit: cover; }
-        .order-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .product-item img { width: 45px; height: 45px; border-radius: 8px; margin-left: 10px; object-fit: cover; }
+        
+        .status-badge { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        .s-available { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .s-out { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .s-soon { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+        
+        .order-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 15px; border-right: 5px solid var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; }
         .order-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 10px; font-size: 18px; font-weight: bold; }
         .table-badge { background: var(--accent); color: #000; padding: 5px 15px; border-radius: 8px; }
         .item-list { list-style: none; padding: 0; margin: 0; font-size: 16px; }
         .item-list li { padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .notes { background: rgba(231, 76, 60, 0.1); color: #e74c3c; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold; }
         .btn-done { background: #3498db; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        
         .empty-orders { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; }
         .radar-box { position: relative; width: 80px; height: 80px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; color: var(--accent); font-size: 30px; }
         .pulse-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 3px solid rgba(245, 158, 11, 0.5); animation: radarPulse 2s infinite; }
         .empty-orders h3 { font-size: 22px; margin-bottom: 5px; font-weight: 900; }
         .empty-orders p { opacity: 0.7; font-size: 15px; }
         @keyframes radarPulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .reports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-icon { font-size: 30px; margin-bottom: 10px; }
+        .stat-value { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 5px; direction: ltr;}
+        .stat-label { font-size: 13px; color: #94a3b8; font-weight: bold; }
+        .top-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .top-item-name { font-weight: bold; font-size: 16px; }
+        .top-item-qty { background: rgba(245, 158, 11, 0.2); color: var(--accent); padding: 4px 12px; border-radius: 8px; font-weight: bold; font-size: 14px;}
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;}
         .nav-item { color: #94a3b8; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 12px; width: 33%; }
         .nav-item.active { color: var(--accent); }
         .nav-item i { font-size: 20px; }
@@ -73,19 +99,27 @@
             </div>
         </div>
 
-        <div class="card" style="border-right: 4px solid #2ecc71;">
-            <h3><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد</h3>
+        <div class="card" id="productFormCard" style="border-right: 4px solid #2ecc71;">
+            <h3 id="formTitle"><i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد</h3>
             <div class="input-group">
                 <input type="text" id="prodName" class="input-field" placeholder="اسم المنتج (مثال: شاي)">
                 <input type="text" id="prodCategory" class="input-field" placeholder="القسم (مثال: مشروبات ساخنة)">
                 <input type="number" id="prodPrice" class="input-field" placeholder="السعر (ج.م)">
+                
+                <!-- خيار حالة المنتج الجديد -->
+                <select id="prodStatus" class="input-field">
+                    <option value="available">متوفر حالياً</option>
+                    <option value="out_of_stock">غير متوفر (خلصان)</option>
+                    <option value="coming_soon">سيتوفر قريباً</option>
+                </select>
                 
                 <input type="file" id="prodImage" accept="image/*" style="display: none;" onchange="previewImage(event)">
                 <label for="prodImage" class="input-field" style="cursor: pointer; text-align: center; background: rgba(255,255,255,0.05);">
                     <i class="fas fa-image"></i> <span id="fileName">اختر صورة للمنتج من الاستوديو</span>
                 </label>
                 
-                <button class="btn btn-add" onclick="addProduct()"><i class="fas fa-plus"></i> إضافة للمنيو</button>
+                <button class="btn btn-add" id="saveProductBtn" onclick="saveProduct()"><i class="fas fa-plus"></i> إضافة للمنيو</button>
+                <button class="btn" id="cancelEditBtn" onclick="cancelEdit()" style="display:none; background: #334155; color: white;">إلغاء التعديل</button>
             </div>
         </div>
 
@@ -99,24 +133,34 @@
 
     <!-- قسم التقارير -->
     <div id="reports" class="tab-content">
-        <div class="card">
-            <h3 style="text-align: center;"><i class="fas fa-chart-line"></i> تقارير المبيعات</h3>
-            <p style="text-align: center; color: #94a3b8;">سيتم إضافة الإحصائيات قريباً</p>
+        <div class="reports-grid">
+            <div class="stat-card" style="border-bottom: 4px solid #3498db;">
+                <i class="fas fa-shopping-cart stat-icon" style="color: #3498db;"></i>
+                <div class="stat-value" id="totalOrdersCount">0</div>
+                <div class="stat-label">الطلبات المكتملة</div>
+            </div>
+            <div class="stat-card" style="border-bottom: 4px solid #2ecc71;">
+                <i class="fas fa-money-bill-wave stat-icon" style="color: #2ecc71;"></i>
+                <div class="stat-value" id="totalRevenue">0 ج.م</div>
+                <div class="stat-label">إجمالي المبيعات</div>
+            </div>
         </div>
+        <div class="card">
+            <h3><i class="fas fa-fire" style="color: #e74c3c;"></i> المنتجات الأكثر مبيعاً</h3>
+            <ul class="product-list" id="topItemsList" style="margin-top: 10px;"></ul>
+        </div>
+        <button class="btn btn-save" onclick="loadReports()" style="margin-top: 10px;"><i class="fas fa-sync-alt"></i> تحديث التقارير الآن</button>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item" id="nav-bar" onclick="switchTab('bar', this)"><i class="fas fa-bell"></i> البار</div>
-        <div class="nav-item" id="nav-menu" onclick="switchTab('menu', this)"><i class="fas fa-edit"></i> المنيو والإعلانات</div>
+        <div class="nav-item" id="nav-menu" onclick="switchTab('menu', this)"><i class="fas fa-edit"></i> المنيو</div>
         <div class="nav-item" id="nav-reports" onclick="switchTab('reports', this)"><i class="fas fa-chart-bar"></i> التقارير</div>
     </div>
 
     <script>
         function logout() {
-            localStorage.removeItem('cafe_id');
-            localStorage.removeItem('cafe_name');
-            localStorage.removeItem('active_tab'); 
-            localStorage.removeItem('sound_enabled');
+            localStorage.clear();
             window.location.replace('login.html');
         }
 
@@ -124,15 +168,15 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZnZheGZoZHVncXJ1eGlnYmZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MDQ2OTgsImV4cCI6MjEwNjk4MDY5OH0.DXBtBIjNQaY6JEnTz5BLV7uY-1Xvx-JH61WLMyMjbsk';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // تحويل الرقم لنوع صحيح عشان يتطابق مع الداتا بيز
         const cafeId = parseInt(localStorage.getItem('cafe_id'));
         document.getElementById('cafeTitle').innerText = localStorage.getItem('cafe_name') || 'البار';
         
-        let soundEnabled = false;
+        let soundEnabled = localStorage.getItem('sound_enabled') === 'true';
         let lastOrderId = null;
+        let allProducts = []; // حفظ المنتجات للتعديل
+        let editingProductId = null; // ID المنتج الجاري تعديله
 
-        if(localStorage.getItem('sound_enabled') === 'true') {
-            soundEnabled = true;
+        if(soundEnabled) {
             const btn = document.getElementById('soundBtn');
             btn.innerHTML = '<i class="fas fa-volume-up"></i> الصوت مفعل';
             btn.style.background = '#3498db';
@@ -167,63 +211,50 @@
             document.getElementById(tabId).classList.add('active');
             el.classList.add('active');
             localStorage.setItem('active_tab', tabId); 
+            if(tabId === 'reports') loadReports();
         }
 
         async function loadOrders() {
-            const { data: orders, error } = await db.from('orders')
-                .select('*')
-                .eq('cafe_id', cafeId)
-                .eq('status', 'pending')
-                .order('created_at', { ascending: false });
-
+            const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'pending').order('created_at', { ascending: false });
             const container = document.getElementById('ordersContainer');
             
             if (!orders || orders.length === 0) {
                 container.innerHTML = `
                     <div class="empty-orders">
-                        <div class="radar-box">
-                            <i class="fas fa-satellite-dish"></i>
-                            <div class="pulse-ring"></div>
-                        </div>
-                        <h3>في انتظار الطلبات...</h3>
-                        <p>السيستم متصل وجاهز لاستقبال أول طلب!</p>
+                        <div class="radar-box"><i class="fas fa-satellite-dish"></i><div class="pulse-ring"></div></div>
+                        <h3>في انتظار الطلبات...</h3><p>السيستم متصل وجاهز!</p>
                     </div>`;
                 return;
             }
 
             const latestOrder = orders[0];
-            if (lastOrderId !== null && latestOrder.id > lastOrderId) {
-                playAudioAlert(latestOrder.table_number);
-            }
-            if (orders.length > 0) {
-                lastOrderId = latestOrder.id; 
-            }
+            if (lastOrderId !== null && latestOrder.id > lastOrderId) playAudioAlert(latestOrder.table_number);
+            if (orders.length > 0) lastOrderId = latestOrder.id; 
 
-            container.innerHTML = '';
+            let newHtml = '';
             orders.forEach(order => {
                 let itemsHtml = '';
-                for (const [name, qty] of Object.entries(order.items)) {
-                    itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
-                }
+                for (const [name, qty] of Object.entries(order.items)) itemsHtml += `<li><b>${qty}x</b> ${name}</li>`;
                 let notesHtml = order.notes ? `<div class="notes"><i class="fas fa-exclamation-circle"></i> ملاحظة: ${order.notes}</div>` : '';
-                container.innerHTML += `
+                newHtml += `
                     <div class="order-card" id="order-${order.id}">
-                        <div class="order-header">
-                            <span>طلب رقم #${order.id}</span>
-                            <span class="table-badge">طاولة ${order.table_number}</span>
-                        </div>
-                        <ul class="item-list">${itemsHtml}</ul>
-                        ${notesHtml}
+                        <div class="order-header"><span>طلب #${order.id}</span><span class="table-badge">طاولة ${order.table_number}</span></div>
+                        <ul class="item-list">${itemsHtml}</ul>${notesHtml}
                         <button class="btn-done" onclick="finishOrder(${order.id})"><i class="fas fa-check"></i> تم التنفيذ</button>
                     </div>`;
             });
+            container.innerHTML = newHtml;
         }
 
+        // الاستجابة اللحظية: الكارت بيختفي فوراً قبل ما يكلم السيرفر
         async function finishOrder(id) {
-            const btn = document.querySelector(`#order-${id} .btn-done`);
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            const card = document.getElementById(`order-${id}`);
+            if(card) {
+                card.style.transform = 'scale(0.8)';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 250); // يختفي في ربع ثانية
+            }
             await db.from('orders').update({ status: 'completed' }).eq('id', id);
-            loadOrders();
         }
 
         let currentBase64 = '';
@@ -237,23 +268,69 @@
             }
         }
 
-        async function addProduct() {
+        // دالة مدمجة للإضافة والتعديل
+        async function saveProduct() {
             const name = document.getElementById('prodName').value;
             const cat = document.getElementById('prodCategory').value;
             const price = document.getElementById('prodPrice').value;
+            const status = document.getElementById('prodStatus').value; // الحالة
             if(!name || !price) return alert("الاسم والسعر مطلوبين");
             
-            document.querySelector('.btn-add').innerText = "جاري الحفظ...";
-            await db.from('products').insert([{ cafe_id: cafeId, name: name, category: cat, price: price, image_url: currentBase64 }]);
+            const btn = document.getElementById('saveProductBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+
+            const productData = { cafe_id: cafeId, name: name, category: cat, price: price, status: status };
+            if(currentBase64) productData.image_url = currentBase64; // تحديث الصورة لو اختار واحدة جديدة
+
+            if(editingProductId) {
+                await db.from('products').update(productData).eq('id', editingProductId);
+                alert("تم تعديل المنتج بنجاح!");
+            } else {
+                await db.from('products').insert([productData]);
+                alert("تم إضافة المنتج بنجاح!");
+            }
             
-            document.querySelector('.btn-add').innerHTML = '<i class="fas fa-plus"></i> إضافة للمنيو';
+            cancelEdit(); // تصفير الفورم
+            loadProducts();
+        }
+
+        // تفعيل وضع التعديل
+        function startEdit(id) {
+            const p = allProducts.find(x => x.id === id);
+            if(!p) return;
+            
+            editingProductId = p.id;
+            document.getElementById('prodName').value = p.name;
+            document.getElementById('prodCategory').value = p.category;
+            document.getElementById('prodPrice').value = p.price;
+            document.getElementById('prodStatus').value = p.status || 'available';
+            
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit" style="color: #3498db;"></i> تعديل المنتج';
+            const btn = document.getElementById('saveProductBtn');
+            btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
+            btn.className = 'btn btn-edit-mode';
+            
+            document.getElementById('cancelEditBtn').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // إلغاء التعديل والرجوع للإضافة
+        function cancelEdit() {
+            editingProductId = null;
             document.getElementById('prodName').value = '';
             document.getElementById('prodCategory').value = '';
             document.getElementById('prodPrice').value = '';
+            document.getElementById('prodStatus').value = 'available';
             document.getElementById('fileName').innerText = 'اختر صورة للمنتج من الاستوديو';
             currentBase64 = '';
-            loadProducts();
-            alert("تم إضافة المنتج بنجاح!");
+            
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle" style="color: #2ecc71;"></i> إضافة منتج جديد';
+            const btn = document.getElementById('saveProductBtn');
+            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للمنيو';
+            btn.className = 'btn btn-add';
+            btn.disabled = false;
+            document.getElementById('cancelEditBtn').style.display = 'none';
         }
 
         async function loadProducts() {
@@ -261,18 +338,28 @@
             const list = document.getElementById('productsList');
             list.innerHTML = '';
             if(data && data.length > 0) {
+                allProducts = data; // حفظهم في الذاكرة للتعديل
                 data.forEach(p => {
                     let imgHtml = p.image_url ? `<img src="${p.image_url}">` : '';
+                    let statusBadge = '';
+                    if(p.status === 'out_of_stock') statusBadge = '<span class="status-badge s-out">غير متوفر</span>';
+                    else if(p.status === 'coming_soon') statusBadge = '<span class="status-badge s-soon">قريباً</span>';
+                    else statusBadge = '<span class="status-badge s-available">متوفر</span>';
+
                     list.innerHTML += `
                         <li class="product-item">
                             <div style="display: flex; align-items: center;">
                                 ${imgHtml}
                                 <div style="margin-right: 10px;">
                                     <b>${p.name}</b> <br>
-                                    <small style="color:#f59e0b;">${p.price} ج.م</small>
+                                    <small style="color:#f59e0b;">${p.price} ج.م</small><br>
+                                    ${statusBadge}
                                 </div>
                             </div>
-                            <button class="btn btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                            <div>
+                                <button class="btn-edit-item" onclick="startEdit(${p.id})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-delete" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+                            </div>
                         </li>
                     `;
                 });
@@ -282,7 +369,7 @@
         }
 
         async function deleteProduct(id) {
-            if(confirm('هل أنت متأكد من مسح المنتج ده؟')) {
+            if(confirm('هل أنت متأكد من مسح المنتج ده خالص؟')) {
                 await db.from('products').delete().eq('id', id);
                 loadProducts();
             }
@@ -290,25 +377,48 @@
 
         async function loadSettings() {
             const { data } = await db.from('settings').select('*').eq('cafe_id', cafeId).single();
-            if (data && data.marquee_text) {
-                document.getElementById('marqueeText').value = data.marquee_text;
-            }
+            if (data && data.marquee_text) document.getElementById('marqueeText').value = data.marquee_text;
         }
 
         async function updateSettings() {
             const text = document.getElementById('marqueeText').value;
             const { data: existing } = await db.from('settings').select('id').eq('cafe_id', cafeId).single();
-            
-            if (existing) {
-                await db.from('settings').update({ marquee_text: text }).eq('cafe_id', cafeId);
-            } else {
-                await db.from('settings').insert([{ cafe_id: cafeId, marquee_text: text }]);
-            }
+            if (existing) await db.from('settings').update({ marquee_text: text }).eq('cafe_id', cafeId);
+            else await db.from('settings').insert([{ cafe_id: cafeId, marquee_text: text }]);
             alert("تم حفظ الإعلان بنجاح!");
         }
 
+        async function loadReports() {
+            // كود التقارير كما هو من الرد السابق...
+            const { data: products } = await db.from('products').select('name, price').eq('cafe_id', cafeId);
+            const priceMap = {}; if (products) products.forEach(p => { priceMap[p.name] = parseFloat(p.price) || 0; });
+            const { data: orders } = await db.from('orders').select('*').eq('cafe_id', cafeId).eq('status', 'completed');
+            let totalOrders = 0; let totalRev = 0; let itemCounts = {};
+            if (orders) {
+                totalOrders = orders.length;
+                orders.forEach(order => {
+                    for (const [name, qty] of Object.entries(order.items)) {
+                        if (itemCounts[name]) itemCounts[name] += qty; else itemCounts[name] = qty;
+                        totalRev += (qty * (priceMap[name] || 0));
+                    }
+                });
+            }
+            document.getElementById('totalOrdersCount').innerText = totalOrders;
+            document.getElementById('totalRevenue').innerText = totalRev.toFixed(0) + ' ج.م';
+            const sortedItems = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]);
+            const topItemsList = document.getElementById('topItemsList');
+            topItemsList.innerHTML = '';
+            if (sortedItems.length === 0) topItemsList.innerHTML = '<p style="text-align: center; color: #777;">لا توجد مبيعات</p>';
+            else {
+                sortedItems.forEach(([name, qty], index) => {
+                    let icon = index === 0 ? '<i class="fas fa-trophy" style="color: #f1c40f; margin-left: 8px;"></i>' : '<i class="fas fa-check-circle" style="color: #334155; margin-left: 8px;"></i>';
+                    topItemsList.innerHTML += `<li class="top-item"><span class="top-item-name">${icon} ${name}</span><span class="top-item-qty">${qty} طلب</span></li>`;
+                });
+            }
+        }
+
         loadOrders();
-        setInterval(loadOrders, 5000); 
+        setInterval(loadOrders, 3000); // تسريع التحديث لـ 3 ثواني بدل 5
         loadProducts();
         loadSettings();
     </script>

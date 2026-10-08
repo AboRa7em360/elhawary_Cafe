@@ -16,25 +16,36 @@
         .announcement-wrapper i { color: var(--accent); font-size: 18px; margin-left: 12px; }
         marquee { font-size: 16px; font-weight: 700; color: #d97706; padding: 12px 0; }
         .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px 20px 15px; }
-        .product-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; transition: 0.2s; }
+        
+        .product-card { position: relative; background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; transition: 0.2s; }
         .product-card:active { transform: scale(0.97); border-color: var(--accent); }
+        
+        /* بادج الحالة للزبون */
+        .status-badge { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 900; color: #fff; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .status-badge.out { background: rgba(231, 76, 60, 0.95); backdrop-filter: blur(5px); }
+        .status-badge.soon { background: rgba(52, 152, 219, 0.95); backdrop-filter: blur(5px); }
+        
         .product-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 1px solid var(--border-color); }
         .no-img-placeholder { width: 100%; height: 130px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--border-color); }
         .no-img-placeholder i { font-size: 40px; color: #cbd5e1; }
         .product-info { padding: 12px; text-align: center; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
         .product-name { font-size: 15px; margin-bottom: 5px; font-weight: 800; color: var(--text-main); }
         .product-price { color: #d97706; font-size: 18px; font-weight: 900; margin-bottom: 12px; }
-        .controls { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px; padding: 5px; border: 1px solid var(--border-color); }
+        
+        .controls { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px; padding: 5px; border: 1px solid var(--border-color); min-height: 34px;}
         .btn { background: #fff; color: var(--text-main); border: 1px solid var(--border-color); width: 32px; height: 32px; border-radius: 8px; font-weight: bold; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .qty { font-size: 16px; font-weight: bold; color: var(--text-main); width: 25px; text-align: center; }
+        
+        .disabled-text { color: #e74c3c; font-weight: bold; font-size: 14px; text-align: center; width: 100%; }
+
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border-color); z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.08); border-radius: 24px 24px 0 0; }
         .input-row { display: flex; gap: 10px; }
         .input-field { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-main); font-size: 14px; text-align: center; font-family: inherit; }
-        .input-field::placeholder { color: var(--text-muted); }
         .input-field:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
-        .submit-btn { width: 100%; background: var(--accent); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); font-family: inherit; }
-        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn { width: 100%; background: var(--accent); color: #fff; border: none; padding: 15px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); font-family: inherit; transition: 0.2s;}
+        .submit-btn:active { transform: scale(0.95); }
+        
         #toast { visibility: hidden; min-width: 250px; background-color: #10b981; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 9999; left: 50%; top: 20px; transform: translateX(-50%); font-size: 15px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         #toast.show { visibility: visible; animation: fadeindown 0.5s, fadeoutup 0.5s 2.5s; }
         @keyframes fadeindown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
@@ -76,9 +87,7 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
-        // تحويل الرقم لنوع صحيح
         const cafeId = parseInt(urlParams.get('id')) || 1; 
-
         let cart = {}; 
 
         function showToast(message) {
@@ -111,15 +120,33 @@
                     cart[p.id] = { name: p.name, qty: 0 }; 
                     let imageElement = (p.image_url && p.image_url.trim() !== '') ? `<img src="${p.image_url}" class="product-img">` : `<div class="no-img-placeholder"><i class="fas fa-mug-hot"></i></div>`;
                     
+                    // تحديد شكل الأزرار والبادج حسب حالة المنتج
+                    let statusBadgeHtml = '';
+                    let controlsHtml = '';
+                    
+                    if (p.status === 'out_of_stock') {
+                        statusBadgeHtml = '<div class="status-badge out">خلصان</div>';
+                        controlsHtml = '<div class="disabled-text">غير متاح للطلب</div>';
+                    } else if (p.status === 'coming_soon') {
+                        statusBadgeHtml = '<div class="status-badge soon">قريباً</div>';
+                        controlsHtml = '<div class="disabled-text">قريباً</div>';
+                    } else {
+                        // متوفر (الوضع الطبيعي)
+                        controlsHtml = `
+                            <button class="btn" onclick="updateQty(${p.id}, 1)">+</button>
+                            <div class="qty" id="qty-${p.id}">0</div>
+                            <button class="btn" onclick="updateQty(${p.id}, -1)">-</button>
+                        `;
+                    }
+                    
                     container.innerHTML += `
                         <div class="product-card">
+                            ${statusBadgeHtml}
                             ${imageElement}
                             <div class="product-info">
                                 <div><div class="product-name">${p.name}</div><div class="product-price">${p.price} ج.م</div></div>
                                 <div class="controls">
-                                    <button class="btn" onclick="updateQty(${p.id}, 1)">+</button>
-                                    <div class="qty" id="qty-${p.id}">0</div>
-                                    <button class="btn" onclick="updateQty(${p.id}, -1)">-</button>
+                                    ${controlsHtml}
                                 </div>
                             </div>
                         </div>
@@ -154,7 +181,6 @@
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري الإرسال...';
             btn.disabled = true;
 
-            // التعديل الأهم: إرسال status: 'pending' وإجبار الـ ID يكون رقم
             const { error } = await db.from('orders').insert([{ 
                 cafe_id: cafeId, 
                 table_number: tableNum, 
@@ -172,7 +198,6 @@
                 showToast("تم إرسال طلبك للبار بنجاح!");
                 document.getElementById('tableNum').value = '';
                 document.getElementById('orderNotes').value = '';
-                // تصفير الأرقام في الشاشة بدون تحميل كامل
                 for (const key in cart) {
                     cart[key].qty = 0;
                     if(document.getElementById(`qty-${key}`)) {
